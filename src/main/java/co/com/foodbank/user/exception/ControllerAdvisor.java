@@ -2,11 +2,14 @@ package co.com.foodbank.user.exception;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -48,6 +51,37 @@ public class ControllerAdvisor {
                 apiError.getStatus());
 
     }
+
+
+
+    /**
+     * Method to handle MethodArgumentNotValidException.
+     */
+    @ExceptionHandler(value = MethodArgumentNotValidException.class)
+    public ResponseEntity<Object> handleArgumentNotValidException(
+            MethodArgumentNotValidException ex) {
+
+        List<String> errors = new ArrayList<String>();
+
+        for (ObjectError violation : ex.getFieldErrors()) {
+            errors.add(violation.getCode());
+        }
+
+        ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST,
+                this.fieldError(ex.getAllErrors()), errors);
+
+        return new ResponseEntity<Object>(apiError, new HttpHeaders(),
+                apiError.getStatus());
+    }
+
+
+
+    private String fieldError(List<ObjectError> list) {
+        return list.stream().map(d -> d.getDefaultMessage())
+                .collect(Collectors.joining(" ; "));
+    }
+
+
 
     /*
      * @ExceptionHandler(value = UserNotFoundException.class) public
