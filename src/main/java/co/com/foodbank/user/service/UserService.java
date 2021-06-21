@@ -73,8 +73,6 @@ public class UserService {
     @Autowired
     private ObjectMapper objectMapper;
 
-
-
     @Autowired
     @Qualifier("sdkService")
     private SDKVaultService sdkService;
