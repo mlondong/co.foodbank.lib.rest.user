@@ -2,9 +2,11 @@ package co.com.foodbank.user;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import co.com.foodbank.vault.sdk.config.EnableVaultSDK;
 
 
 @SpringBootApplication
+@EnableVaultSDK
 public class UserApplication {
 
 
