@@ -20,20 +20,31 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.webjars.NotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import co.com.foodbank.user.dto.BeneficiaryDTO;
 import co.com.foodbank.user.dto.ProviderDTO;
 import co.com.foodbank.user.dto.VolunterDTO;
-import co.com.foodbank.user.exception.ContributionNotFoundException;
+import co.com.foodbank.user.exception.UserErrorException;
+import co.com.foodbank.user.exception.UserNotFoundException;
 import co.com.foodbank.user.model.IBeneficiary;
 import co.com.foodbank.user.model.IProvider;
 import co.com.foodbank.user.model.IUser;
 import co.com.foodbank.user.model.IVolunter;
 import co.com.foodbank.user.v1.controller.UserController;
+import co.com.foodbank.user.v1.model.Beneficiary;
+import co.com.foodbank.user.v1.model.Provider;
+import co.com.foodbank.user.v1.model.Volunter;
 import co.com.foodbank.validaton.ValidateEmail;
 import co.com.foodbank.vault.sdk.exception.SDKVaultServiceException;
 import co.com.foodbank.vault.sdk.exception.SDKVaultServiceIllegalArgumentException;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 
 /**
@@ -45,6 +56,7 @@ import co.com.foodbank.vault.sdk.exception.SDKVaultServiceIllegalArgumentExcepti
 
 @RestController
 @RequestMapping(value = "/user")
+@Tag(name = "User", description = "the User API")
 @Validated
 public class UserRestController {
 
@@ -60,9 +72,22 @@ public class UserRestController {
      * 
      * @return {@code ResponseEntity<IUser>}
      */
+    @Operation(summary = "Find all users.")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200",
+                            description = "User found.",
+                            content = {
+                                    @Content(mediaType = "application/json")}),
+                    @ApiResponse(responseCode = "500",
+                            description = "Service not available.",
+                            content = @Content),
+                    @ApiResponse(responseCode = "400",
+                            description = "Bad request.", content = @Content)})
     @GetMapping(value = "/findAll")
-    public Collection<IUser> findAllUsers() {
-        return controller.findAll();
+    public ResponseEntity<Collection<IUser>> findAllUsers()
+            throws UserNotFoundException {
+        return ResponseEntity.status(HttpStatus.OK).body(controller.findAll());
     }
 
 
@@ -73,12 +98,26 @@ public class UserRestController {
      * @throws NotFoundException
      * @throws NumberFormatException
      */
+
+    @Operation(summary = "Find user by dni.")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200",
+                            description = "User found.",
+                            content = {
+                                    @Content(mediaType = "application/json")}),
+                    @ApiResponse(responseCode = "500",
+                            description = "Service not available.",
+                            content = @Content),
+                    @ApiResponse(responseCode = "400",
+                            description = "Bad request.", content = @Content)})
     @GetMapping(value = "/findDni/{dni}")
-    public IUser findByDni(@PathVariable("dni") @Pattern(
+    public ResponseEntity<IUser> findByDni(@PathVariable("dni") @Pattern(
             regexp = "^[0-9]{8,8}$") @NotBlank @NotNull @Size(min = 8,
                     max = 8) String dni)
-            throws ContributionNotFoundException {
-        return controller.findByDni(dni);
+            throws UserNotFoundException {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(controller.findByDni(dni));
     }
 
     //
@@ -90,14 +129,28 @@ public class UserRestController {
      * @throws NotFoundException
      * @throws NumberFormatException
      */
+
+    @Operation(summary = "Find user by cuit.")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200",
+                            description = "User found.",
+                            content = {
+                                    @Content(mediaType = "application/json")}),
+                    @ApiResponse(responseCode = "500",
+                            description = "Service not available.",
+                            content = @Content),
+                    @ApiResponse(responseCode = "400",
+                            description = "Bad request.", content = @Content)})
     @GetMapping(value = "/findCuit/{cuit}")
-    public IUser findByCuit(
+    public ResponseEntity<IUser> findByCuit(
             @PathVariable("cuit") @Pattern(
                     regexp = "^[0-9]{12,12}$") @NotBlank @NotNull @Size(
                             min = 12, max = 12) String cuit)
-            throws ContributionNotFoundException {
+            throws UserNotFoundException {
 
-        return controller.findByCuit(cuit);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(controller.findByCuit(cuit));
 
     }
 
@@ -110,11 +163,24 @@ public class UserRestController {
      * @return {@code ResponseEntity<IUser> }
      * @throws NotFoundException
      */
+    @Operation(summary = "Find user by email.")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200",
+                            description = "User found.",
+                            content = {
+                                    @Content(mediaType = "application/json")}),
+                    @ApiResponse(responseCode = "500",
+                            description = "Service not available.",
+                            content = @Content),
+                    @ApiResponse(responseCode = "400",
+                            description = "Bad request.", content = @Content)})
     @GetMapping(value = "/findByEmail/{email}")
-    public Collection<IUser> findByEmail(
+    public ResponseEntity<Collection<IUser>> findByEmail(
             @PathVariable("email") @Email @ValidateEmail @NotBlank @NotNull String email)
-            throws ContributionNotFoundException {
-        return controller.findByEmail(email);
+            throws UserNotFoundException {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(controller.findByEmail(email));
     }
 
 
@@ -125,12 +191,24 @@ public class UserRestController {
      * @param user
      * @return {@code ResponseEntity<IVolunter>}
      */
+    @Operation(summary = "Create  a Volunter", description = "",
+            tags = {"Volunter"})
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "201",
+                            description = "Volunter created",
+                            content = @Content(schema = @Schema(
+                                    implementation = Volunter.class))),
+                    @ApiResponse(responseCode = "400",
+                            description = "Invalid input"),
+                    @ApiResponse(responseCode = "409",
+                            description = "Volunter already exists")})
     @PostMapping(value = "/createVolunter",
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseBody
     public ResponseEntity<IVolunter> createVolunter(
-            @RequestBody @Valid VolunterDTO dto) {
+            @RequestBody @Valid VolunterDTO dto) throws UserNotFoundException {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(controller.createVolunter(dto));
@@ -142,14 +220,30 @@ public class UserRestController {
      * @param dto
      * @param id
      * @return {@code ResponseEntity<IVolunter>}
+     * @throws UserErrorException
+     * @throws NotFoundException
      */
+    @Operation(summary = "Update  a Volunter", description = "",
+            tags = {"Volunter"})
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "201",
+                            description = "Volunter updated",
+                            content = @Content(schema = @Schema(
+                                    implementation = Volunter.class))),
+                    @ApiResponse(responseCode = "400",
+                            description = "Invalid input"),
+                    @ApiResponse(responseCode = "409",
+                            description = "Volunter already exists")})
     @PutMapping(value = "/updateVolunter/{id}",
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseBody
     public ResponseEntity<IVolunter> updateVolunter(
             @RequestBody @Valid VolunterDTO dto,
-            @PathVariable("id") @NotBlank @NotNull String id) {
+            @PathVariable("id") @NotBlank @NotNull String id)
+            throws UserNotFoundException, NotFoundException,
+            UserErrorException {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(controller.updateVolunter(dto, id));
@@ -170,6 +264,18 @@ public class UserRestController {
      * @throws JsonProcessingException
      * @throws JsonMappingException
      */
+    @Operation(summary = "Create  a Provider", description = "",
+            tags = {"Provider"})
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "201",
+                            description = "Provider created",
+                            content = @Content(schema = @Schema(
+                                    implementation = Provider.class))),
+                    @ApiResponse(responseCode = "400",
+                            description = "Invalid input"),
+                    @ApiResponse(responseCode = "409",
+                            description = "Provider already exists")})
     @PostMapping(value = "/createProvider",
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
@@ -190,14 +296,30 @@ public class UserRestController {
      * @param dto
      * @param id
      * @return {@code ResponseEntity<IProvider>}
+     * @throws UserErrorException
+     * @throws NotFoundException
      */
+    @Operation(summary = "Update  a Provider", description = "",
+            tags = {"Provider"})
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "201",
+                            description = "Provider updated",
+                            content = @Content(schema = @Schema(
+                                    implementation = Provider.class))),
+                    @ApiResponse(responseCode = "400",
+                            description = "Invalid input"),
+                    @ApiResponse(responseCode = "409",
+                            description = "Provider already exists")})
     @PutMapping(value = "/updateProvider/{id}",
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseBody
     public ResponseEntity<IProvider> updateProvider(
             @RequestBody @Valid ProviderDTO dto,
-            @PathVariable("id") @NotBlank @NotNull String id) {
+            @PathVariable("id") @NotBlank @NotNull String id)
+            throws UserNotFoundException, NotFoundException,
+            UserErrorException {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(controller.updateProvider(dto, id));
@@ -212,12 +334,23 @@ public class UserRestController {
      * @param dto
      * @return {@code ResponseEntity<IBeneficiary>}
      */
+    @Operation(summary = "Create  a Beneficiary", description = "",
+            tags = {"Beneficiary"})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201",
+                    description = "Beneficiary created",
+                    content = @Content(schema = @Schema(
+                            implementation = Beneficiary.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid input"),
+            @ApiResponse(responseCode = "409",
+                    description = "Beneficiary already exists")})
     @PostMapping(value = "/createBeneficiary",
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseBody
     public ResponseEntity<IBeneficiary> createBeneficiary(
-            @RequestBody @Valid BeneficiaryDTO dto) {
+            @RequestBody @Valid BeneficiaryDTO dto)
+            throws UserNotFoundException {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(controller.createBeneficiary(dto));
@@ -231,17 +364,61 @@ public class UserRestController {
      * @param dto
      * @param id
      * @return {@code ResponseEntity<IBeneficiary>}
+     * @throws UserErrorException
+     * @throws NotFoundException
      */
+    @Operation(summary = "Update  a Beneficiary", description = "",
+            tags = {"Beneficiary"})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201",
+                    description = "Beneficiary updated",
+                    content = @Content(schema = @Schema(
+                            implementation = Beneficiary.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid input"),
+            @ApiResponse(responseCode = "409",
+                    description = "Beneficiary already exists")})
+
     @PutMapping(value = "/updateBeneficiary/{id}",
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseBody
     public ResponseEntity<IBeneficiary> updateBeneficiary(
             @RequestBody @Valid BeneficiaryDTO dto,
-            @PathVariable("id") @NotBlank @NotNull String id) {
+            @PathVariable("id") @NotBlank @NotNull String id)
+            throws UserNotFoundException, NotFoundException,
+            UserErrorException {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(controller.updateBeneficiary(dto, id));
+    }
+
+
+    /*********************************************************************/
+    /**
+     * Method to find users by id.
+     * 
+     * @param _id
+     * @return {@code ResponseEntity<IUser>}
+     * @throws UserNotFoundException
+     */
+    @Operation(summary = "Find user by Id.")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200",
+                            description = "User found.",
+                            content = {
+                                    @Content(mediaType = "application/json")}),
+                    @ApiResponse(responseCode = "500",
+                            description = "Service not available.",
+                            content = @Content),
+                    @ApiResponse(responseCode = "400",
+                            description = "Bad request.", content = @Content)})
+    @GetMapping(value = "/findById/{id}")
+    public ResponseEntity<IUser> findById(
+            @PathVariable("id") @NotBlank @NotNull String _id)
+            throws UserNotFoundException {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(controller.findById(_id));
     }
 
 

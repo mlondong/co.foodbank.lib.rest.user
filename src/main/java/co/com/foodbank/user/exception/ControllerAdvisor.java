@@ -5,13 +5,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
+import javax.validation.UnexpectedTypeException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import co.com.foodbank.vault.sdk.exception.SDKVaultServiceNotAvailableException;
 
 @ControllerAdvice
 public class ControllerAdvisor {
@@ -21,9 +24,9 @@ public class ControllerAdvisor {
     /**
      * Method to handle user not found by dni, email andcuit.
      */
-    @ExceptionHandler(value = ContributionNotFoundException.class)
+    @ExceptionHandler(value = UserNotFoundException.class)
     public ResponseEntity<Object> handleNotFoundException(
-            ContributionNotFoundException ex) {
+            UserNotFoundException ex) {
 
         ApiError apiError = new ApiError(HttpStatus.NOT_FOUND,
                 ex.getLocalizedMessage(), ex.getMessage());
@@ -76,11 +79,73 @@ public class ControllerAdvisor {
 
 
 
+    /**
+     * Method to handle SDKVaultServiceNotAvailableException.
+     */
+    @ExceptionHandler(value = SDKVaultServiceNotAvailableException.class)
+    public ResponseEntity<Object> handleSDKVaultServiceNotAvailableException(
+            SDKVaultServiceNotAvailableException ex) {
+
+        ApiError apiError = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR,
+                ex.getLocalizedMessage(), ex.getMessage());
+        return new ResponseEntity<Object>(apiError, new HttpHeaders(),
+                apiError.getStatus());
+
+    }
+
+
+
     private String fieldError(List<ObjectError> list) {
         return list.stream().map(d -> d.getDefaultMessage())
                 .collect(Collectors.joining(" ; "));
     }
 
+
+
+    /**
+     * Method to handle HttpMessageNotReadableException.
+     */
+    @ExceptionHandler(value = HttpMessageNotReadableException.class)
+    public ResponseEntity<Object> httpMessageNotReadableException(
+            HttpMessageNotReadableException ex) {
+
+        ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST,
+                ex.getLocalizedMessage(), ex.getMessage());
+        return new ResponseEntity<Object>(apiError, new HttpHeaders(),
+                apiError.getStatus());
+
+    }
+
+
+    /**
+     * Method to handle UnexpectedTypeException.
+     */
+    @ExceptionHandler(value = UnexpectedTypeException.class)
+    public ResponseEntity<Object> handleUnexpectedTypeException(
+            UnexpectedTypeException ex) {
+
+        ApiError apiError = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR,
+                ex.getLocalizedMessage(), ex.getMessage());
+        return new ResponseEntity<Object>(apiError, new HttpHeaders(),
+                apiError.getStatus());
+
+    }
+
+
+
+    /**
+     * Method to handle UserErrorException.
+     */
+    @ExceptionHandler(value = UserErrorException.class)
+    public ResponseEntity<Object> httpUserErrorException(
+            UserErrorException ex) {
+
+        ApiError apiError = new ApiError(HttpStatus.FORBIDDEN,
+                ex.getLocalizedMessage(), ex.getMessage());
+        return new ResponseEntity<Object>(apiError, new HttpHeaders(),
+                apiError.getStatus());
+
+    }
 
 
     /*

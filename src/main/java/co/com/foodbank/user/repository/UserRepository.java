@@ -4,7 +4,7 @@ import java.util.Collection;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
-import co.com.foodbank.user.exception.ContributionNotFoundException;
+import co.com.foodbank.user.exception.UserNotFoundException;
 import co.com.foodbank.user.v1.model.User;
 
 /**
@@ -13,14 +13,14 @@ import co.com.foodbank.user.v1.model.User;
 @Repository
 public interface UserRepository extends MongoRepository<User, String> {
 
-    @Query("{'email': ?0}")
-    Collection<User> findByEmail(String email) throws ContributionNotFoundException;
+    @Query("{'email':{'$regex':'?0','$options':'i'}}")
+    Collection<User> findByEmail(String email) throws UserNotFoundException;
 
     @Query("{'cuil': ?0}")
-    User finByCuit(Long cuit) throws ContributionNotFoundException;
+    User finByCuit(Long cuit) throws UserNotFoundException;
 
     @Query("{'dni': ?0}")
-    User finByDni(Long dni) throws ContributionNotFoundException;
+    User finByDni(Long dni) throws UserNotFoundException;
 
 
 

@@ -23,7 +23,8 @@ import co.com.foodbank.country.dto.CountryDTO;
 import co.com.foodbank.user.dto.BeneficiaryDTO;
 import co.com.foodbank.user.dto.ProviderDTO;
 import co.com.foodbank.user.dto.VolunterDTO;
-import co.com.foodbank.user.exception.ContributionNotFoundException;
+import co.com.foodbank.user.exception.UserErrorException;
+import co.com.foodbank.user.exception.UserNotFoundException;
 import co.com.foodbank.user.model.IBeneficiary;
 import co.com.foodbank.user.model.IProvider;
 import co.com.foodbank.user.model.IUser;
@@ -78,13 +79,18 @@ public class UserService {
     private SDKVaultService sdkService;
 
 
+    private static final String MSG_ERROR = "is not a";
+    private static final String MSG_BENEFICIARY = " Beneficiary";
+    private static final String MSG_VOLUNTER = " Volunter";
+    private static final String MSG_PROVIDER = " Provider";
+
 
     /**
      * Method to list all users.
      * 
      * @return {@code Collection<IUser> }
      */
-    public Collection<IUser> findAll() {
+    public Collection<IUser> findAll() throws UserNotFoundException {
         return userRepository.findAll().stream()
                 .map(d -> modelMapper.map(d, IUser.class))
                 .collect(Collectors.toList());
@@ -101,11 +107,11 @@ public class UserService {
      * @throws org.springframework.data.crossstore.ChangeSetPersister.NotFoundException
      * @throws NumberFormatException
      */
-    public IUser findByCuit(String cuit) throws ContributionNotFoundException {
+    public IUser findByCuit(String cuit) throws UserNotFoundException {
 
         User data = userRepository.finByCuit(Long.valueOf(cuit));
         if (Objects.isNull(data)) {
-            throw new ContributionNotFoundException(cuit);
+            throw new UserNotFoundException(cuit);
         }
         return modelMapper.map(data, IUser.class);
     }
@@ -118,12 +124,12 @@ public class UserService {
      * @throws org.springframework.data.crossstore.ChangeSetPersister.NotFoundException
      */
     public Collection<IUser> findByEmail(String email)
-            throws ContributionNotFoundException {
+            throws UserNotFoundException {
 
         Collection<User> data = userRepository.findByEmail(email);
 
         if (data.isEmpty()) {
-            throw new ContributionNotFoundException(email);
+            throw new UserNotFoundException(email);
         }
         return data.stream().map(d -> modelMapper.map(d, IUser.class))
                 .collect(Collectors.toList());
@@ -134,14 +140,14 @@ public class UserService {
      * 
      * @param dni
      * @return {@code IUser}
-     * @throws ContributionNotFoundException
+     * @throws UserNotFoundException
      */
-    public IUser findByDni(String dni) throws ContributionNotFoundException {
+    public IUser findByDni(String dni) throws UserNotFoundException {
 
         User data = userRepository.finByDni(Long.valueOf(dni));
 
         if (Objects.isNull(data)) {
-            throw new ContributionNotFoundException(dni);
+            throw new UserNotFoundException(dni);
         }
         return modelMapper.map(data, IUser.class);
     }
@@ -163,7 +169,8 @@ public class UserService {
      * @param dto
      * @return {@code Volunter}
      */
-    public Volunter createVolunter(@Valid VolunterDTO dto) {
+    public Volunter createVolunter(@Valid VolunterDTO dto)
+            throws UserNotFoundException {
         return volunterRepository.save(this.setVolunter(dto));
     }
 
@@ -176,7 +183,7 @@ public class UserService {
      * @return {@code Volunter}
      */
     private Volunter setVolunter(@Valid VolunterDTO dto) {
-        Vehicule vehicule = serVehicule(dto);
+        Vehicule vehicule = setVehicule(dto);
         Address address = setAddress(dto.getAddress());
 
         Volunter volunter = modelMapper.map(dto, Volunter.class);
@@ -223,10 +230,10 @@ public class UserService {
      * @param dto
      * @return {@code Vehicule}
      */
-    private Vehicule serVehicule(VolunterDTO dto) {
+    private Vehicule setVehicule(VolunterDTO dto) {
         Vehicule dataVehicule = new Vehicule();
         if (!checkIsNullVehicule(dto.getVehicule())) {
-            if (!checkIsNullAttVehicule(dto.getVehicule())) {
+            if (!checkIsNullAttrbInVehicule(dto.getVehicule())) {
                 dataVehicule =
                         modelMapper.map(dto.getVehicule(), Vehicule.class);
                 if (!checkIsNullVolume(dto.getVehicule().getVolume())) {
@@ -246,7 +253,7 @@ public class UserService {
         return Objects.isNull(dto);
     }
 
-    private boolean checkIsNullAttVehicule(VehiculeDTO dto) {
+    private boolean checkIsNullAttrbInVehicule(VehiculeDTO dto) {
         return Stream.of(dto).allMatch(Objects::isNull);
     }
 
@@ -336,7 +343,8 @@ public class UserService {
      * @param dto
      * @return {@code IBeneficiary}
      */
-    public Beneficiary createBeneficiary(BeneficiaryDTO dto) {
+    public Beneficiary createBeneficiary(BeneficiaryDTO dto)
+            throws UserNotFoundException {
 
         return beneficiaryRepository.save(setBeneficiary(dto));
 
@@ -371,14 +379,25 @@ public class UserService {
      * @param category
      * @param size
      * @return {@code IBeneficiary}
+     * @throws UserErrorException
      */
     public IBeneficiary updateBeneficiary(BeneficiaryDTO dto, String _id)
-            throws NotFoundException {
+            throws NotFoundException, UserNotFoundException,
+            UserErrorException {
 
-        Beneficiary query = beneficiaryRepository.findById(_id)
-                .orElseThrow(() -> new NotFoundException(_id));
-        return beneficiaryRepository.save(buildBeneficiary(dto, query));
+        User dataDB = findById(_id);
+        if (!checkInstansOfBeneficiary(dataDB)) {
+            String err = _id + MSG_ERROR + MSG_BENEFICIARY;
+            throw new UserErrorException(err);
+        }
+        return beneficiaryRepository
+                .save(buildBeneficiary(dto, (Beneficiary) dataDB));
 
+    }
+
+
+    private boolean checkInstansOfBeneficiary(User dataDB) {
+        return (dataDB instanceof Beneficiary) ? true : false;
     }
 
 
@@ -405,13 +424,19 @@ public class UserService {
 
 
     public IProvider updateprovider(ProviderDTO dto, String _id)
-            throws NotFoundException {
+            throws NotFoundException, UserErrorException {
 
-        Provider query = providerRepository.findById(_id)
-                .orElseThrow(() -> new NotFoundException(_id));
+        User dataDB = findById(_id);
+        if (!checkInstansOfProvider(dataDB)) {
+            String err = _id + MSG_ERROR + MSG_PROVIDER;
+            throw new UserErrorException(err);
+        }
+        return providerRepository.save(buildProvider(dto, (Provider) dataDB));
+    }
 
-        return providerRepository.save(buildProvider(dto, query));
 
+    private boolean checkInstansOfProvider(User dataDB) {
+        return (dataDB instanceof Provider) ? true : false;
     }
 
 
@@ -444,14 +469,22 @@ public class UserService {
      * @param _id
      * @return
      * @throws NotFoundException
+     * @throws UserErrorException
      */
     public IVolunter updateVolunter(VolunterDTO dto, String _id)
-            throws NotFoundException {
+            throws NotFoundException, UserErrorException {
 
-        Volunter query = volunterRepository.findById(_id)
-                .orElseThrow(() -> new NotFoundException(_id));
+        User dataDB = findById(_id);
+        if (!checkInstansOfVolunter(dataDB)) {
+            String err = _id + MSG_ERROR + MSG_VOLUNTER;
+            throw new UserErrorException(err);
+        }
+        return volunterRepository.save(buildVolunter(dto, (Volunter) dataDB));
+    }
 
-        return volunterRepository.save(buildVolunter(dto, query));
+
+    private boolean checkInstansOfVolunter(User dataDB) {
+        return (dataDB instanceof Volunter) ? true : false;
     }
 
 
@@ -472,6 +505,17 @@ public class UserService {
         volunter.setPhones(dto.getPhones());
         volunter.setDni(Long.valueOf(dto.getDni()));
         return volunter;
+    }
+
+    /**
+     * Find User by Id.
+     * 
+     * @param _id
+     * @return {@code IUser}
+     */
+    public User findById(String _id) throws UserNotFoundException {
+        return userRepository.findById(_id)
+                .orElseThrow(() -> new UserNotFoundException(_id));
     }
 
 

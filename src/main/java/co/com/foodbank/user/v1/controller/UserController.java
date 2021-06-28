@@ -2,15 +2,19 @@ package co.com.foodbank.user.v1.controller;
 
 import java.util.Collection;
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.webjars.NotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import co.com.foodbank.user.dto.BeneficiaryDTO;
 import co.com.foodbank.user.dto.ProviderDTO;
 import co.com.foodbank.user.dto.VolunterDTO;
-import co.com.foodbank.user.exception.ContributionNotFoundException;
+import co.com.foodbank.user.exception.UserErrorException;
+import co.com.foodbank.user.exception.UserNotFoundException;
 import co.com.foodbank.user.model.IBeneficiary;
 import co.com.foodbank.user.model.IProvider;
 import co.com.foodbank.user.model.IUser;
@@ -39,7 +43,7 @@ public class UserController {
      * 
      * @return {@code Collection<IUser>}
      */
-    public Collection<IUser> findAll() {
+    public Collection<IUser> findAll() throws UserNotFoundException {
         return service.findAll();
     }
 
@@ -51,7 +55,7 @@ public class UserController {
      * @throws NotFoundException
      */
     public Collection<IUser> findByEmail(String email)
-            throws ContributionNotFoundException {
+            throws UserNotFoundException {
         return service.findByEmail(email);
     }
 
@@ -64,7 +68,7 @@ public class UserController {
      * @throws NumberFormatException
      */
     public IUser findByCuit(String cuit)
-            throws NumberFormatException, ContributionNotFoundException {
+            throws NumberFormatException, UserNotFoundException {
         return service.findByCuit(cuit);
     }
 
@@ -77,7 +81,7 @@ public class UserController {
      * @throws NumberFormatException
      * 
      */
-    public IUser findByDni(String dni) throws ContributionNotFoundException {
+    public IUser findByDni(String dni) throws UserNotFoundException {
         return service.findByDni(dni);
     }
 
@@ -95,7 +99,8 @@ public class UserController {
      * @param dto
      * @return
      */
-    public IVolunter createVolunter(@Valid VolunterDTO dto) {
+    public IVolunter createVolunter(@Valid VolunterDTO dto)
+            throws UserNotFoundException {
         return modelMapper.map(service.createVolunter(dto), IVolunter.class);
     }
 
@@ -123,7 +128,8 @@ public class UserController {
      * @param dto
      * @return {@code IBeneficiary}
      */
-    public IBeneficiary createBeneficiary(@Valid BeneficiaryDTO dto) {
+    public IBeneficiary createBeneficiary(@Valid BeneficiaryDTO dto)
+            throws UserNotFoundException {
 
         return modelMapper.map(service.createBeneficiary(dto),
                 IBeneficiary.class);
@@ -139,9 +145,11 @@ public class UserController {
      * @param category
      * @param size
      * @return {@code IBeneficiary}
+     * @throws UserErrorException
      */
-    public IBeneficiary updateBeneficiary(@Valid BeneficiaryDTO dto,
-            String _id) {
+    public IBeneficiary updateBeneficiary(@Valid BeneficiaryDTO dto, String _id)
+            throws NotFoundException, UserNotFoundException,
+            UserErrorException {
         return modelMapper.map(service.updateBeneficiary(dto, _id),
                 IBeneficiary.class);
     }
@@ -154,8 +162,12 @@ public class UserController {
      * @param dto
      * @param _id
      * @return {@code IProvider }
+     * @throws UserErrorException
+     * @throws NotFoundException
      */
-    public IProvider updateProvider(@Valid ProviderDTO dto, String _id) {
+    public IProvider updateProvider(@Valid ProviderDTO dto, String _id)
+            throws UserNotFoundException, NotFoundException,
+            UserErrorException {
         return modelMapper.map(service.updateprovider(dto, _id),
                 IProvider.class);
     }
@@ -166,10 +178,25 @@ public class UserController {
      * @param dto
      * @param id
      * @return {@code IVolunter}
+     * @throws UserErrorException
+     * @throws NotFoundException
      */
-    public IVolunter updateVolunter(@Valid VolunterDTO dto, String _id) {
+    public IVolunter updateVolunter(@Valid VolunterDTO dto, String _id)
+            throws UserNotFoundException, NotFoundException,
+            UserErrorException {
         return modelMapper.map(service.updateVolunter(dto, _id),
                 IVolunter.class);
+    }
+
+    /**
+     * Find User by Id.
+     * 
+     * @param _id
+     * @return {@code IUser}
+     */
+    public IUser findById(@NotBlank @NotNull String _id)
+            throws UserNotFoundException {
+        return service.findById(_id);
     }
 
 
