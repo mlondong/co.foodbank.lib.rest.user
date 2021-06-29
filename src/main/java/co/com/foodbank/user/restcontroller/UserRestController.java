@@ -21,8 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.webjars.NotFoundException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import co.com.foodbank.user.dto.BeneficiaryDTO;
 import co.com.foodbank.user.dto.ProviderDTO;
 import co.com.foodbank.user.dto.VolunterDTO;
@@ -37,8 +35,6 @@ import co.com.foodbank.user.v1.model.Beneficiary;
 import co.com.foodbank.user.v1.model.Provider;
 import co.com.foodbank.user.v1.model.Volunter;
 import co.com.foodbank.validaton.ValidateEmail;
-import co.com.foodbank.vault.sdk.exception.SDKVaultServiceException;
-import co.com.foodbank.vault.sdk.exception.SDKVaultServiceIllegalArgumentException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -64,7 +60,6 @@ public class UserRestController {
 
     @Autowired
     public UserController controller;
-
 
 
     /**
@@ -259,10 +254,6 @@ public class UserRestController {
      * @param legalRpp
      * @param dto
      * @return {@code ResponseEntity<IProvider> }
-     * @throws SDKVaultServiceIllegalArgumentException
-     * @throws SDKVaultServiceException
-     * @throws JsonProcessingException
-     * @throws JsonMappingException
      */
     @Operation(summary = "Create  a Provider", description = "",
             tags = {"Provider"})
@@ -281,9 +272,7 @@ public class UserRestController {
             produces = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseBody
     public ResponseEntity<IProvider> createProvider(
-            @RequestBody @Valid ProviderDTO dto)
-            throws JsonMappingException, JsonProcessingException,
-            SDKVaultServiceException, SDKVaultServiceIllegalArgumentException {
+            @RequestBody @Valid ProviderDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(controller.createProvider(dto));
     }

@@ -86,11 +86,7 @@
 
 
 		<!-- Dependencies for all DTO -->
-		<dependency>
-			<groupId>co.com.foodbank.vault</groupId>
-			<artifactId>co.foodbank.lib.sdk.vault</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
+		
 
 		<dependency>
 			<groupId>co.com.foodbank.user</groupId>
