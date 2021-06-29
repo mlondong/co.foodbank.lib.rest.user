@@ -8,8 +8,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.webjars.NotFoundException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import co.com.foodbank.user.dto.BeneficiaryDTO;
 import co.com.foodbank.user.dto.ProviderDTO;
 import co.com.foodbank.user.dto.VolunterDTO;
@@ -20,8 +18,6 @@ import co.com.foodbank.user.model.IProvider;
 import co.com.foodbank.user.model.IUser;
 import co.com.foodbank.user.model.IVolunter;
 import co.com.foodbank.user.service.UserService;
-import co.com.foodbank.vault.sdk.exception.SDKVaultServiceException;
-import co.com.foodbank.vault.sdk.exception.SDKVaultServiceIllegalArgumentException;
 
 /**
  * Class to handle all operations in User.
@@ -35,8 +31,11 @@ public class UserController {
 
     @Autowired
     public UserService service;
+
     @Autowired
     public ModelMapper modelMapper;
+
+
 
     /**
      * Method to find all users
@@ -109,14 +108,8 @@ public class UserController {
      * 
      * @param dto
      * @return {@code IProvider}
-     * @throws SDKVaultServiceIllegalArgumentException
-     * @throws SDKVaultServiceException
-     * @throws JsonProcessingException
-     * @throws JsonMappingException
      */
-    public IProvider createProvider(@Valid ProviderDTO dto)
-            throws JsonMappingException, JsonProcessingException,
-            SDKVaultServiceException, SDKVaultServiceIllegalArgumentException {
+    public IProvider createProvider(@Valid ProviderDTO dto) {
         return modelMapper.map(service.createProvider(dto), IProvider.class);
     }
 

@@ -14,7 +14,6 @@ import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import co.com.foodbank.vault.sdk.exception.SDKVaultServiceNotAvailableException;
 
 @ControllerAdvice
 public class ControllerAdvisor {
@@ -75,22 +74,6 @@ public class ControllerAdvisor {
 
         return new ResponseEntity<Object>(apiError, new HttpHeaders(),
                 apiError.getStatus());
-    }
-
-
-
-    /**
-     * Method to handle SDKVaultServiceNotAvailableException.
-     */
-    @ExceptionHandler(value = SDKVaultServiceNotAvailableException.class)
-    public ResponseEntity<Object> handleSDKVaultServiceNotAvailableException(
-            SDKVaultServiceNotAvailableException ex) {
-
-        ApiError apiError = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR,
-                ex.getLocalizedMessage(), ex.getMessage());
-        return new ResponseEntity<Object>(apiError, new HttpHeaders(),
-                apiError.getStatus());
-
     }
 
 

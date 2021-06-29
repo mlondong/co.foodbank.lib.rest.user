@@ -1,6 +1,5 @@
 package co.com.foodbank.user.service;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -8,14 +7,9 @@ import java.util.stream.Stream;
 import javax.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.webjars.NotFoundException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import co.com.foodbank.address.dto.Address;
 import co.com.foodbank.address.dto.AddressDTO;
 import co.com.foodbank.country.dto.Country;
@@ -37,13 +31,6 @@ import co.com.foodbank.user.v1.model.Beneficiary;
 import co.com.foodbank.user.v1.model.Provider;
 import co.com.foodbank.user.v1.model.User;
 import co.com.foodbank.user.v1.model.Volunter;
-import co.com.foodbank.vault.dto.IVault;
-import co.com.foodbank.vault.dto.VaultDTO;
-import co.com.foodbank.vault.sdk.exception.SDKVaultServiceException;
-import co.com.foodbank.vault.sdk.exception.SDKVaultServiceIllegalArgumentException;
-import co.com.foodbank.vault.sdk.model.VaultData;
-import co.com.foodbank.vault.sdk.service.SDKVaultService;
-import co.com.foodbank.vault.v1.model.Vault;
 import co.com.foodbank.vehicule.dto.Vehicule;
 import co.com.foodbank.vehicule.dto.VehiculeDTO;
 import co.com.foodbank.vehicule.dto.Volume;
@@ -71,12 +58,6 @@ public class UserService {
     @Autowired
     private ModelMapper modelMapper;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    @Qualifier("sdkService")
-    private SDKVaultService sdkService;
 
 
     private static final String MSG_ERROR = "is not a";
@@ -264,14 +245,8 @@ public class UserService {
      * 
      * @param dto
      * @return {@code Provider}
-     * @throws SDKVaultServiceIllegalArgumentException
-     * @throws SDKVaultServiceException
-     * @throws JsonProcessingException
-     * @throws JsonMappingException
      */
-    public Provider createProvider(ProviderDTO dto)
-            throws JsonMappingException, JsonProcessingException,
-            SDKVaultServiceException, SDKVaultServiceIllegalArgumentException {
+    public Provider createProvider(ProviderDTO dto) {
         return providerRepository.save(this.setProvider(dto));
     }
 
@@ -283,16 +258,8 @@ public class UserService {
      * @param cuit
      * @param legalRpp
      * @return {@code Provider}
-     * @throws SDKVaultServiceIllegalArgumentException
-     * @throws SDKVaultServiceException
-     * @throws VaultServiceException
-     * @throws JsonProcessingException
-     * @throws JsonMappingException
      */
-    private Provider setProvider(ProviderDTO providerDto)
-            throws JsonMappingException, JsonProcessingException,
-            SDKVaultServiceException, SDKVaultServiceIllegalArgumentException {
-
+    private Provider setProvider(ProviderDTO providerDto) {
 
         Address address = setAddress(providerDto.getAddress());
 
@@ -305,34 +272,8 @@ public class UserService {
         provider.setPassword(providerDto.getPassword());
         provider.setPhones(providerDto.getPhones());
         provider.setState(false);
-        provider.setSucursal(createVault(providerDto));
 
         return provider;
-    }
-
-
-    /**
-     * @param providerDto
-     * @throws JsonMappingException
-     * @throws JsonProcessingException
-     * @throws SDKVaultServiceException
-     * @throws SDKVaultServiceIllegalArgumentException
-     */
-    private Collection<IVault> createVault(ProviderDTO providerDto)
-            throws JsonMappingException, JsonProcessingException,
-            SDKVaultServiceException, SDKVaultServiceIllegalArgumentException {
-
-        Collection<Vault> data = new ArrayList<Vault>();
-
-        for (VaultDTO d : providerDto.getSucursal()) {
-            VaultData vaultData = objectMapper.readValue(sdkService.create(d),
-                    new TypeReference<VaultData>() {});
-            data.add(modelMapper.map(vaultData, Vault.class));
-        }
-
-        return data.stream().map(d -> modelMapper.map(d, IVault.class))
-                .collect(Collectors.toList());
-
     }
 
 
