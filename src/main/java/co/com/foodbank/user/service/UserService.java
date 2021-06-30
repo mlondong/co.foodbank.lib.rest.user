@@ -1,5 +1,6 @@
 package co.com.foodbank.user.service;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -7,9 +8,12 @@ import java.util.stream.Stream;
 import javax.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.webjars.NotFoundException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import co.com.foodbank.address.dto.Address;
 import co.com.foodbank.address.dto.AddressDTO;
 import co.com.foodbank.country.dto.Country;
@@ -31,6 +35,13 @@ import co.com.foodbank.user.v1.model.Beneficiary;
 import co.com.foodbank.user.v1.model.Provider;
 import co.com.foodbank.user.v1.model.User;
 import co.com.foodbank.user.v1.model.Volunter;
+import co.com.foodbank.vault.dto.IVault;
+import co.com.foodbank.vault.dto.VaultDTO;
+import co.com.foodbank.vault.sdk.exception.SDKVaultServiceException;
+import co.com.foodbank.vault.sdk.exception.SDKVaultServiceIllegalArgumentException;
+import co.com.foodbank.vault.sdk.model.ResponseVaultData;
+import co.com.foodbank.vault.sdk.service.SDKVaultService;
+import co.com.foodbank.vault.v1.model.Vault;
 import co.com.foodbank.vehicule.dto.Vehicule;
 import co.com.foodbank.vehicule.dto.VehiculeDTO;
 import co.com.foodbank.vehicule.dto.Volume;
@@ -58,11 +69,16 @@ public class UserService {
     @Autowired
     private ModelMapper modelMapper;
 
-
+    @Autowired
+    @Qualifier("sdkVaultService")
+    private SDKVaultService sdkVaultService;
 
     private static final String MSG_ERROR = "is not a";
+
     private static final String MSG_BENEFICIARY = " Beneficiary";
+
     private static final String MSG_VOLUNTER = " Volunter";
+
     private static final String MSG_PROVIDER = " Provider";
 
 
@@ -164,6 +180,7 @@ public class UserService {
      * @return {@code Volunter}
      */
     private Volunter setVolunter(@Valid VolunterDTO dto) {
+
         Vehicule vehicule = setVehicule(dto);
         Address address = setAddress(dto.getAddress());
 
@@ -173,6 +190,25 @@ public class UserService {
         return volunter;
     }
 
+    /**
+     * Build Volunter
+     * 
+     * @param dto
+     * @param query
+     * @return {@code Volunter}
+     */
+    private Volunter buildVolunter(VolunterDTO dto, Volunter query) {
+        Address address = setAddress(dto.getAddress());
+
+        Volunter volunter = query;
+        volunter.setAddress(address);
+        volunter.setEmail(dto.getEmail());
+        volunter.setName(dto.getName());
+        volunter.setPassword(dto.getPassword());
+        volunter.setPhones(dto.getPhones());
+        volunter.setDni(Long.valueOf(dto.getDni()));
+        return volunter;
+    }
 
 
     private Address setAddress(AddressDTO dtoAddress) {
@@ -239,6 +275,7 @@ public class UserService {
     }
 
 
+    /****************************************************************************************************************/
 
     /**
      * Method to create a Provider.
@@ -246,24 +283,35 @@ public class UserService {
      * @param dto
      * @return {@code Provider}
      */
-    public Provider createProvider(ProviderDTO dto) {
+    public Provider createProvider(ProviderDTO dto)
+            throws JsonMappingException, JsonProcessingException,
+            SDKVaultServiceException, SDKVaultServiceIllegalArgumentException {
         return providerRepository.save(this.setProvider(dto));
     }
 
 
     /**
-     * Method to create an Provider.
+     * Method to build a Provider.
      * 
      * @param dto
      * @param cuit
      * @param legalRpp
      * @return {@code Provider}
      */
-    private Provider setProvider(ProviderDTO providerDto) {
-
-        Address address = setAddress(providerDto.getAddress());
+    private Provider setProvider(ProviderDTO providerDto)
+            throws JsonMappingException, JsonProcessingException,
+            SDKVaultServiceException, SDKVaultServiceIllegalArgumentException {
 
         Provider provider = new Provider();
+        provider = initProvider(providerDto, provider);
+        provider.setState(false);
+        provider.setSucursal(createVault(providerDto));
+        return provider;
+    }
+
+
+    private Provider initProvider(ProviderDTO providerDto, Provider provider) {
+        Address address = setAddress(providerDto.getAddress());
         provider.setAddress(address);
         provider.setCuil(Long.valueOf(providerDto.getCuil()));
         provider.setEmail(providerDto.getEmail());
@@ -271,25 +319,47 @@ public class UserService {
         provider.setName(providerDto.getName());
         provider.setPassword(providerDto.getPassword());
         provider.setPhones(providerDto.getPhones());
-        provider.setState(false);
-
         return provider;
     }
 
 
+    /**
+     * Method to create Vault in Provider.
+     * 
+     * @param providerDto
+     * @throws JsonMappingException
+     * @throws JsonProcessingException
+     * @throws SDKVaultServiceException
+     * @throws SDKVaultServiceIllegalArgumentException
+     */
+    private Collection<IVault> createVault(ProviderDTO providerDto)
+            throws JsonMappingException, JsonProcessingException,
+            SDKVaultServiceException, SDKVaultServiceIllegalArgumentException {
+
+        Collection<Vault> data = new ArrayList<Vault>();
+
+        for (VaultDTO d : providerDto.getSucursal()) {
+            ResponseVaultData response = sdkVaultService.create(d);
+            data.add(modelMapper.map(response, Vault.class));
+        }
+
+        return data.stream().map(d -> modelMapper.map(d, IVault.class))
+                .collect(Collectors.toList());
+
+    }
+
+    /****************************************************************************************************************/
+
 
     /**
-     * Method tocreate a Provider.
+     * Method to create a Beneficiary.
      * 
      * @param dto
      * @return {@code IBeneficiary}
      */
     public Beneficiary createBeneficiary(BeneficiaryDTO dto)
             throws UserNotFoundException {
-
         return beneficiaryRepository.save(setBeneficiary(dto));
-
-
     }
 
 
@@ -363,15 +433,31 @@ public class UserService {
     }
 
 
-
+    /*******************************************************************************************************************/
+    /**
+     * Method to update provider adding vault
+     * 
+     * @param dto
+     * @param _id
+     * @return {@code IProvider}
+     * @throws NotFoundException
+     * @throws UserErrorException
+     * @throws SDKVaultServiceIllegalArgumentException
+     * @throws SDKVaultServiceException
+     * @throws JsonProcessingException
+     * @throws JsonMappingException
+     */
     public IProvider updateprovider(ProviderDTO dto, String _id)
-            throws NotFoundException, UserErrorException {
+            throws NotFoundException, UserErrorException, JsonMappingException,
+            JsonProcessingException, SDKVaultServiceException,
+            SDKVaultServiceIllegalArgumentException {
 
         User dataDB = findById(_id);
         if (!checkInstansOfProvider(dataDB)) {
             String err = _id + MSG_ERROR + MSG_PROVIDER;
             throw new UserErrorException(err);
         }
+
         return providerRepository.save(buildProvider(dto, (Provider) dataDB));
     }
 
@@ -382,25 +468,29 @@ public class UserService {
 
 
     /**
+     * Method to build Provider and add new Vault.
+     * 
      * @param dto
      * @param query
-     * @return
+     * @return {@code Provider}
+     * @throws JsonMappingException
+     * @throws JsonProcessingException
+     * @throws SDKVaultServiceException
+     * @throws SDKVaultServiceIllegalArgumentException
      */
-    private Provider buildProvider(ProviderDTO dto, Provider query) {
-        Provider provider = query;
-        Address address = setAddress(dto.getAddress());
-        provider.setAddress(address);
-        provider.setEmail(dto.getEmail());
-        provider.setName(dto.getName());
-        provider.setPassword(dto.getPassword());
-        provider.setPhones(dto.getPhones());
-        provider.setCuil(Long.valueOf(dto.getCuil()));
-        provider.setLegalRepresentation(dto.getLegalRepresentation());
-        // provider.setSucursal(dto.getSucursal());
+    private Provider buildProvider(ProviderDTO dto, Provider query)
+            throws JsonMappingException, JsonProcessingException,
+            SDKVaultServiceException, SDKVaultServiceIllegalArgumentException {
 
+        Provider provider = query;
+        provider = initProvider(dto, provider);
+        provider.getSucursal().addAll(createVault(dto));
         return provider;
 
     }
+
+    /*******************************************************************************************************************/
+
 
 
     /**
@@ -429,24 +519,6 @@ public class UserService {
     }
 
 
-    /**
-     * Build Volunter
-     * 
-     * @param dto
-     * @param query
-     * @return {@code Volunter}
-     */
-    private Volunter buildVolunter(VolunterDTO dto, Volunter query) {
-        Volunter volunter = query;
-        Address address = setAddress(dto.getAddress());
-        volunter.setAddress(address);
-        volunter.setEmail(dto.getEmail());
-        volunter.setName(dto.getName());
-        volunter.setPassword(dto.getPassword());
-        volunter.setPhones(dto.getPhones());
-        volunter.setDni(Long.valueOf(dto.getDni()));
-        return volunter;
-    }
 
     /**
      * Find User by Id.
