@@ -18,10 +18,10 @@ public class User implements IUser {
     private String id;
     private String name;
     private String email;
-    private IAddress address;
     private String password;
     private String phones;
     private boolean state = false;
+    private IAddress address;
 
 
 

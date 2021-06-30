@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.webjars.NotFoundException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import co.com.foodbank.user.dto.BeneficiaryDTO;
 import co.com.foodbank.user.dto.ProviderDTO;
 import co.com.foodbank.user.dto.VolunterDTO;
@@ -35,6 +37,8 @@ import co.com.foodbank.user.v1.model.Beneficiary;
 import co.com.foodbank.user.v1.model.Provider;
 import co.com.foodbank.user.v1.model.Volunter;
 import co.com.foodbank.validaton.ValidateEmail;
+import co.com.foodbank.vault.sdk.exception.SDKVaultServiceException;
+import co.com.foodbank.vault.sdk.exception.SDKVaultServiceIllegalArgumentException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -272,7 +276,9 @@ public class UserRestController {
             produces = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseBody
     public ResponseEntity<IProvider> createProvider(
-            @RequestBody @Valid ProviderDTO dto) {
+            @RequestBody @Valid ProviderDTO dto)
+            throws JsonMappingException, JsonProcessingException,
+            SDKVaultServiceException, SDKVaultServiceIllegalArgumentException {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(controller.createProvider(dto));
     }
@@ -287,8 +293,12 @@ public class UserRestController {
      * @return {@code ResponseEntity<IProvider>}
      * @throws UserErrorException
      * @throws NotFoundException
+     * @throws SDKVaultServiceIllegalArgumentException
+     * @throws SDKVaultServiceException
+     * @throws JsonProcessingException
+     * @throws JsonMappingException
      */
-    @Operation(summary = "Update  a Provider", description = "",
+    @Operation(summary = "Update  a Provider ", description = "add new Vault.",
             tags = {"Provider"})
     @ApiResponses(
             value = {
@@ -307,8 +317,9 @@ public class UserRestController {
     public ResponseEntity<IProvider> updateProvider(
             @RequestBody @Valid ProviderDTO dto,
             @PathVariable("id") @NotBlank @NotNull String id)
-            throws UserNotFoundException, NotFoundException,
-            UserErrorException {
+            throws UserNotFoundException, NotFoundException, UserErrorException,
+            JsonMappingException, JsonProcessingException,
+            SDKVaultServiceException, SDKVaultServiceIllegalArgumentException {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(controller.updateProvider(dto, id));
