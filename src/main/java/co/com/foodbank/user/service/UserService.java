@@ -1,6 +1,5 @@
 package co.com.foodbank.user.service;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -35,7 +34,6 @@ import co.com.foodbank.user.v1.model.Beneficiary;
 import co.com.foodbank.user.v1.model.Provider;
 import co.com.foodbank.user.v1.model.User;
 import co.com.foodbank.user.v1.model.Volunter;
-import co.com.foodbank.vault.dto.IVault;
 import co.com.foodbank.vault.dto.VaultDTO;
 import co.com.foodbank.vault.sdk.exception.SDKVaultServiceException;
 import co.com.foodbank.vault.sdk.exception.SDKVaultServiceIllegalArgumentException;
@@ -305,7 +303,7 @@ public class UserService {
         Provider provider = new Provider();
         provider = initProvider(providerDto, provider);
         provider.setState(false);
-        provider.setSucursal(createVault(providerDto));
+        // provider.setSucursal(createVault(providerDto));
         return provider;
     }
 
@@ -332,21 +330,22 @@ public class UserService {
      * @throws SDKVaultServiceException
      * @throws SDKVaultServiceIllegalArgumentException
      */
-    private Collection<IVault> createVault(ProviderDTO providerDto)
-            throws JsonMappingException, JsonProcessingException,
-            SDKVaultServiceException, SDKVaultServiceIllegalArgumentException {
-
-        Collection<Vault> data = new ArrayList<Vault>();
-
-        for (VaultDTO d : providerDto.getSucursal()) {
-            ResponseVaultData response = sdkVaultService.create(d);
-            data.add(modelMapper.map(response, Vault.class));
-        }
-
-        return data.stream().map(d -> modelMapper.map(d, IVault.class))
-                .collect(Collectors.toList());
-
-    }
+    /*
+     * private Collection<IVault> createVault(ProviderDTO providerDto) throws
+     * JsonMappingException, JsonProcessingException, SDKVaultServiceException,
+     * SDKVaultServiceIllegalArgumentException {
+     * 
+     * Collection<Vault> data = new ArrayList<Vault>();
+     * 
+     * for (VaultDTO d : providerDto.getSucursal()) { ResponseVaultData response
+     * = sdkVaultService.create(d); data.add(modelMapper.map(response,
+     * Vault.class)); }
+     * 
+     * return data.stream().map(d -> modelMapper.map(d, IVault.class))
+     * .collect(Collectors.toList());
+     * 
+     * }
+     */
 
     /****************************************************************************************************************/
 
@@ -484,7 +483,7 @@ public class UserService {
 
         Provider provider = query;
         provider = initProvider(dto, provider);
-        provider.getSucursal().addAll(createVault(dto));
+        // provider.getSucursal().addAll(createVault(dto));
         return provider;
 
     }
@@ -529,6 +528,38 @@ public class UserService {
     public User findById(String _id) throws UserNotFoundException {
         return userRepository.findById(_id)
                 .orElseThrow(() -> new UserNotFoundException(_id));
+    }
+
+
+    /**
+     * Method to add vault in provider.
+     * 
+     * @param vaultDto
+     * @param id
+     * @return {@code IProvider}
+     * @throws SDKVaultServiceIllegalArgumentException
+     * @throws SDKVaultServiceException
+     * @throws JsonProcessingException
+     * @throws JsonMappingException
+     * @throws UserErrorException
+     */
+    public IProvider addVaultInProvider(VaultDTO vaultDto, String id)
+            throws JsonMappingException, JsonProcessingException,
+            SDKVaultServiceException, SDKVaultServiceIllegalArgumentException,
+            UserErrorException {
+
+        ResponseVaultData responseV = sdkVaultService.create(vaultDto);
+        User responseP = this.findById(id);
+
+        if (!checkInstansOfProvider(responseP)) {
+            String err = id + MSG_ERROR + MSG_PROVIDER;
+            throw new UserErrorException(err);
+        }
+
+        Provider data = (Provider) responseP;
+        data.getSucursal().add(modelMapper.map(responseV, Vault.class));
+
+        return modelMapper.map(providerRepository.save(data), IProvider.class);
     }
 
 

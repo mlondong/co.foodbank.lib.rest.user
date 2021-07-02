@@ -37,6 +37,7 @@ import co.com.foodbank.user.v1.model.Beneficiary;
 import co.com.foodbank.user.v1.model.Provider;
 import co.com.foodbank.user.v1.model.Volunter;
 import co.com.foodbank.validaton.ValidateEmail;
+import co.com.foodbank.vault.dto.VaultDTO;
 import co.com.foodbank.vault.sdk.exception.SDKVaultServiceException;
 import co.com.foodbank.vault.sdk.exception.SDKVaultServiceIllegalArgumentException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -323,6 +324,47 @@ public class UserRestController {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(controller.updateProvider(dto, id));
+    }
+
+
+    /**
+     * Method to ADD Vault in Provider
+     * 
+     * @param dto
+     * @param id
+     * @return {@code ResponseEntity<IProvider>}
+     * @throws UserErrorException
+     * @throws NotFoundException
+     * @throws SDKVaultServiceIllegalArgumentException
+     * @throws SDKVaultServiceException
+     * @throws JsonProcessingException
+     * @throws JsonMappingException
+     */
+    @Operation(summary = "Add Vault in Provider ",
+            description = "add new Vault.", tags = {"Provider"})
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "201",
+                            description = "Provider updated",
+                            content = @Content(schema = @Schema(
+                                    implementation = Provider.class))),
+                    @ApiResponse(responseCode = "400",
+                            description = "Invalid input"),
+                    @ApiResponse(responseCode = "409",
+                            description = "Provider already exists")})
+    @PostMapping(value = "/addVaultInProvider/{id}",
+            consumes = {MediaType.APPLICATION_JSON_VALUE},
+            produces = {MediaType.APPLICATION_JSON_VALUE})
+    @ResponseBody
+    public ResponseEntity<IProvider> addVaultInProvider(
+            @RequestBody @Valid VaultDTO vaultDto,
+            @PathVariable("id") @NotBlank @NotNull String id)
+            throws UserNotFoundException, NotFoundException, UserErrorException,
+            JsonMappingException, JsonProcessingException,
+            SDKVaultServiceException, SDKVaultServiceIllegalArgumentException {
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(controller.addVaultInProvider(vaultDto, id));
     }
 
 
