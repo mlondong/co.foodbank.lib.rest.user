@@ -20,6 +20,7 @@ import co.com.foodbank.user.model.IProvider;
 import co.com.foodbank.user.model.IUser;
 import co.com.foodbank.user.model.IVolunter;
 import co.com.foodbank.user.service.UserService;
+import co.com.foodbank.vault.dto.VaultDTO;
 import co.com.foodbank.vault.sdk.exception.SDKVaultServiceException;
 import co.com.foodbank.vault.sdk.exception.SDKVaultServiceIllegalArgumentException;
 
@@ -201,6 +202,27 @@ public class UserController {
     public IUser findById(@NotBlank @NotNull String _id)
             throws UserNotFoundException {
         return service.findById(_id);
+    }
+
+
+
+    /**
+     * Method to add vault in provider.
+     * 
+     * @param vaultDto
+     * @param id
+     * @return {@code IProvider}
+     * @throws UserErrorException
+     * @throws SDKVaultServiceIllegalArgumentException
+     * @throws SDKVaultServiceException
+     * @throws JsonProcessingException
+     * @throws JsonMappingException
+     */
+    public IProvider addVaultInProvider(@Valid VaultDTO vaultDto,
+            @NotBlank @NotNull String id) throws JsonMappingException,
+            JsonProcessingException, SDKVaultServiceException,
+            SDKVaultServiceIllegalArgumentException, UserErrorException {
+        return service.addVaultInProvider(vaultDto, id);
     }
 
 
