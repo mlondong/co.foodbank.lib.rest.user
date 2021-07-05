@@ -227,4 +227,39 @@ public class UserController {
 
 
 
+    /**
+     * Method to find provider by sucursal.
+     * 
+     * @param id
+     * @return {@code IProvider}
+     */
+    public IProvider findBySucursal(@NotBlank @NotNull String id)
+            throws UserNotFoundException {
+        return service.findBySucursal(id);
+    }
+
+
+
+    /**
+     * Method to update vault in provider.
+     * 
+     * @param sucursal
+     * @param id
+     * @return {@code IProvider}
+     * @throws UserErrorException
+     * @throws SDKVaultServiceIllegalArgumentException
+     * @throws SDKVaultServiceException
+     * @throws JsonProcessingException
+     * @throws JsonMappingException
+     * @throws NotFoundException
+     */
+    public IProvider updateVaultProvider(@Valid VaultDTO dto,
+            @NotBlank @NotNull String id) throws UserErrorException,
+            NotFoundException, JsonMappingException, JsonProcessingException,
+            SDKVaultServiceException, SDKVaultServiceIllegalArgumentException {
+        return service.updateVaultProvider(dto, id);
+    }
+
+
+
 }
