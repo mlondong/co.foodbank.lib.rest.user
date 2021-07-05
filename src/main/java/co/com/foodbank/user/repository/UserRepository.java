@@ -23,5 +23,4 @@ public interface UserRepository extends MongoRepository<User, String> {
     User finByDni(Long dni) throws UserNotFoundException;
 
 
-
 }

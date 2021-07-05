@@ -1,7 +1,9 @@
 package co.com.foodbank.user.repository;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
+import co.com.foodbank.user.exception.UserNotFoundException;
 import co.com.foodbank.user.v1.model.Provider;
 
 /**
@@ -10,6 +12,7 @@ import co.com.foodbank.user.v1.model.Provider;
 @Repository
 public interface ProviderRepository extends MongoRepository<Provider, String> {
 
-
+    @Query("{'sucursal.id': ?0 }")
+    Provider findBySucursal(String id) throws UserNotFoundException;
 
 }

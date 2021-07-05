@@ -81,6 +81,11 @@
 			<version>2.11.4</version>
 		</dependency>
 
+		<!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-security -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
 
 
 
@@ -108,7 +113,7 @@
 		<!-- Dependencies for all DTO -->
 
 
-		<!-- SDK USED-->
+		<!-- SDK USED -->
 		<dependency>
 			<groupId>co.com.foodbank.vault</groupId>
 			<artifactId>co.foodbank.lib.sdk.vault</artifactId>

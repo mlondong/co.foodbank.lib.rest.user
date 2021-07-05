@@ -9,6 +9,7 @@ import javax.validation.UnexpectedTypeException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -35,6 +36,23 @@ public class ControllerAdvisor {
                 apiError.getStatus());
 
     }
+
+
+
+    /**
+     * Method to handle IllegalArgumentException.
+     */
+    @ExceptionHandler(value = IllegalArgumentException.class)
+    public ResponseEntity<Object> handleIllegalArgumentException(
+            IllegalArgumentException ex) {
+
+        ApiError apiError = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR,
+                ex.getLocalizedMessage(), ex.getMessage());
+        return new ResponseEntity<Object>(apiError, new HttpHeaders(),
+                apiError.getStatus());
+
+    }
+
 
 
     /**
@@ -124,6 +142,21 @@ public class ControllerAdvisor {
     @ExceptionHandler(value = HttpMessageNotReadableException.class)
     public ResponseEntity<Object> httpMessageNotReadableException(
             HttpMessageNotReadableException ex) {
+
+        ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST,
+                ex.getLocalizedMessage(), ex.getMessage());
+        return new ResponseEntity<Object>(apiError, new HttpHeaders(),
+                apiError.getStatus());
+
+    }
+
+
+    /**
+     * Method to handle HttpMessageConversionException.
+     */
+    @ExceptionHandler(value = HttpMessageConversionException.class)
+    public ResponseEntity<Object> httpHttpMessageConversionException(
+            HttpMessageConversionException ex) {
 
         ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST,
                 ex.getLocalizedMessage(), ex.getMessage());

@@ -67,6 +67,34 @@ public class UserRestController {
     public UserController controller;
 
 
+
+    /**
+     * Method to find Provider by sucursal.
+     * 
+     * @return {@code ResponseEntity<IUser>}
+     */
+    @Operation(summary = "Find Provider by Sucursal.")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200",
+                            description = "User found.",
+                            content = {
+                                    @Content(mediaType = "application/json")}),
+                    @ApiResponse(responseCode = "500",
+                            description = "Service not available.",
+                            content = @Content),
+                    @ApiResponse(responseCode = "400",
+                            description = "Bad request.", content = @Content)})
+    @GetMapping(value = "/findBySucursal/{id-vault}")
+    public ResponseEntity<IProvider> findBySucursal(
+            @PathVariable("id-vault") @NotBlank @NotNull String id)
+            throws UserNotFoundException {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(controller.findBySucursal(id));
+    }
+
+
+
     /**
      * Method to findAll users.
      * 
@@ -111,7 +139,7 @@ public class UserRestController {
                             content = @Content),
                     @ApiResponse(responseCode = "400",
                             description = "Bad request.", content = @Content)})
-    @GetMapping(value = "/findDni/{dni}")
+    @GetMapping(value = "/findByDni/{dni}")
     public ResponseEntity<IUser> findByDni(@PathVariable("dni") @Pattern(
             regexp = "^[0-9]{8,8}$") @NotBlank @NotNull @Size(min = 8,
                     max = 8) String dni)
@@ -142,7 +170,7 @@ public class UserRestController {
                             content = @Content),
                     @ApiResponse(responseCode = "400",
                             description = "Bad request.", content = @Content)})
-    @GetMapping(value = "/findCuit/{cuit}")
+    @GetMapping(value = "/findByCuit/{cuit}")
     public ResponseEntity<IUser> findByCuit(
             @PathVariable("cuit") @Pattern(
                     regexp = "^[0-9]{12,12}$") @NotBlank @NotNull @Size(
@@ -223,7 +251,7 @@ public class UserRestController {
      * @throws UserErrorException
      * @throws NotFoundException
      */
-    @Operation(summary = "Update  a Volunter", description = "",
+    @Operation(summary = "Update a Volunter base information", description = "",
             tags = {"Volunter"})
     @ApiResponses(
             value = {
@@ -299,8 +327,8 @@ public class UserRestController {
      * @throws JsonProcessingException
      * @throws JsonMappingException
      */
-    @Operation(summary = "Update  a Provider ", description = "add new Vault.",
-            tags = {"Provider"})
+    @Operation(summary = "Update a Provider base information ",
+            description = "", tags = {"Provider"})
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "201",
@@ -325,6 +353,49 @@ public class UserRestController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(controller.updateProvider(dto, id));
     }
+
+
+
+    /**
+     * Method to update Vault in a Provider
+     * 
+     * @param dto
+     * @param id
+     * @return {@code ResponseEntity<IProvider>}
+     * @throws UserErrorException
+     * @throws NotFoundException
+     * @throws SDKVaultServiceIllegalArgumentException
+     * @throws SDKVaultServiceException
+     * @throws JsonProcessingException
+     * @throws JsonMappingException
+     */
+    @Operation(summary = "Update Vault in Provider",
+            description = "Restricted by spring security, only used by specific ips.",
+            tags = {"Provider"})
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "201",
+                            description = "Provider updated",
+                            content = @Content(schema = @Schema(
+                                    implementation = Provider.class))),
+                    @ApiResponse(responseCode = "400",
+                            description = "Invalid input"),
+                    @ApiResponse(responseCode = "409",
+                            description = "Provider already exists")})
+    @PutMapping(value = "/updateVaultInProvider/{id}",
+            consumes = {MediaType.APPLICATION_JSON_VALUE},
+            produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<IProvider> updateVaultProvider(
+            @RequestBody @Valid VaultDTO dto,
+            @PathVariable("id") @NotBlank @NotNull String id)
+            throws UserNotFoundException, NotFoundException, UserErrorException,
+            JsonMappingException, JsonProcessingException,
+            SDKVaultServiceException, SDKVaultServiceIllegalArgumentException {
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(controller.updateVaultProvider(dto, id));
+    }
+
 
 
     /**
@@ -409,8 +480,8 @@ public class UserRestController {
      * @throws UserErrorException
      * @throws NotFoundException
      */
-    @Operation(summary = "Update  a Beneficiary", description = "",
-            tags = {"Beneficiary"})
+    @Operation(summary = "Update  a Beneficiary base information",
+            description = "", tags = {"Beneficiary"})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201",
                     description = "Beneficiary updated",

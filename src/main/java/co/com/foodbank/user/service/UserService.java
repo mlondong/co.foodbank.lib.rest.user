@@ -1,5 +1,6 @@
 package co.com.foodbank.user.service;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -34,6 +35,7 @@ import co.com.foodbank.user.v1.model.Beneficiary;
 import co.com.foodbank.user.v1.model.Provider;
 import co.com.foodbank.user.v1.model.User;
 import co.com.foodbank.user.v1.model.Volunter;
+import co.com.foodbank.vault.dto.IVault;
 import co.com.foodbank.vault.dto.VaultDTO;
 import co.com.foodbank.vault.sdk.exception.SDKVaultServiceException;
 import co.com.foodbank.vault.sdk.exception.SDKVaultServiceIllegalArgumentException;
@@ -78,6 +80,11 @@ public class UserService {
     private static final String MSG_VOLUNTER = " Volunter";
 
     private static final String MSG_PROVIDER = " Provider";
+
+    private static final String MSG_NOT_FOUND = " Not Found";
+
+    private static final String VAULT = " Valut";
+
 
 
     /**
@@ -302,7 +309,8 @@ public class UserService {
 
         Provider provider = new Provider();
         provider = initProvider(providerDto, provider);
-        provider.setState(false);
+        provider.setState(true);
+        provider.setSucursal(new ArrayList<IVault>());
         // provider.setSucursal(createVault(providerDto));
         return provider;
     }
@@ -458,6 +466,7 @@ public class UserService {
         }
 
         return providerRepository.save(buildProvider(dto, (Provider) dataDB));
+
     }
 
 
@@ -469,7 +478,7 @@ public class UserService {
     /**
      * Method to build Provider and add new Vault.
      * 
-     * @param dto
+     * @param data
      * @param query
      * @return {@code Provider}
      * @throws JsonMappingException
@@ -548,7 +557,6 @@ public class UserService {
             SDKVaultServiceException, SDKVaultServiceIllegalArgumentException,
             UserErrorException {
 
-        ResponseVaultData responseV = sdkVaultService.create(vaultDto);
         User responseP = this.findById(id);
 
         if (!checkInstansOfProvider(responseP)) {
@@ -556,10 +564,67 @@ public class UserService {
             throw new UserErrorException(err);
         }
 
-        Provider data = (Provider) responseP;
+        ResponseVaultData responseV = sdkVaultService.create(vaultDto);
+
+        Provider data = modelMapper.map(responseP, Provider.class);
         data.getSucursal().add(modelMapper.map(responseV, Vault.class));
 
         return modelMapper.map(providerRepository.save(data), IProvider.class);
+    }
+
+
+
+    /**
+     * Method to find provider by sucursal.
+     * 
+     * @param id
+     * @return {@code IProvider}
+     */
+    public IProvider findBySucursal(String id) throws UserNotFoundException {
+
+        Provider result = providerRepository.findBySucursal(id);
+
+        if (Objects.isNull(result)) {
+            throw new UserNotFoundException(id);
+        }
+
+        return modelMapper.map(result, IProvider.class);
+    }
+
+
+    /**
+     * Method to update vault in provider.
+     * 
+     * @param sucursal
+     * @param id
+     * @return {@code IProvider}
+     * @throws UserErrorException
+     * @throws SDKVaultServiceIllegalArgumentException
+     * @throws SDKVaultServiceException
+     * @throws JsonProcessingException
+     * @throws JsonMappingException
+     */
+    public IProvider updateVaultProvider(VaultDTO dto, String _id)
+            throws UserErrorException, NotFoundException, JsonMappingException,
+            JsonProcessingException, SDKVaultServiceException,
+            SDKVaultServiceIllegalArgumentException {
+
+        String err = _id + MSG_NOT_FOUND + VAULT;
+
+        /* UPDATE A VAULT FROM USER */
+        IProvider result = findBySucursal(_id);
+
+        IVault vault = result.getSucursal().stream()
+                .filter(d -> d.getId().equals(_id)).findFirst()
+                .orElseThrow(() -> new NotFoundException(err));
+
+        Vault updated = modelMapper.map(vault, Vault.class);
+        updated.setAddress(modelMapper.map(dto.getAddress(), Address.class));
+        updated.setContact(dto.getContact());
+        updated.setPhones(dto.getPhones());
+
+        return providerRepository.save((Provider) result);
+
     }
 
 
