@@ -10,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.webjars.NotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import co.com.foodbank.contribution.dto.ContributionData;
 import co.com.foodbank.user.dto.BeneficiaryDTO;
 import co.com.foodbank.user.dto.ProviderDTO;
 import co.com.foodbank.user.dto.VolunterDTO;
@@ -219,10 +220,10 @@ public class UserController {
      * @throws JsonMappingException
      */
     public IProvider addVaultInProvider(@Valid VaultDTO vaultDto,
-            @NotBlank @NotNull String id) throws JsonMappingException,
+            @NotBlank @NotNull String idProvider) throws JsonMappingException,
             JsonProcessingException, SDKVaultServiceException,
             SDKVaultServiceIllegalArgumentException, UserErrorException {
-        return service.addVaultInProvider(vaultDto, id);
+        return service.addVaultInProvider(vaultDto, idProvider);
     }
 
 
@@ -258,6 +259,20 @@ public class UserController {
             NotFoundException, JsonMappingException, JsonProcessingException,
             SDKVaultServiceException, SDKVaultServiceIllegalArgumentException {
         return service.updateVaultProvider(dto, id);
+    }
+
+
+    /**
+     * Method to update contribution in provider.
+     * 
+     * @param data
+     * @param idVault
+     * @return {@code IProvider}
+     */
+    public IProvider updateContribution(@Valid ContributionData data,
+            @NotBlank @NotNull String idVault) {
+        // TODO Auto-generated method stub
+        return service.updateContribution(data, idVault);
     }
 
 

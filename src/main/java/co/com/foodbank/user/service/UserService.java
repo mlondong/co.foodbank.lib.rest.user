@@ -16,6 +16,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import co.com.foodbank.address.dto.Address;
 import co.com.foodbank.address.dto.AddressDTO;
+import co.com.foodbank.contribution.dto.ContributionData;
+import co.com.foodbank.contribution.dto.DetailContributionData;
+import co.com.foodbank.contribution.dto.GeneralContributionData;
+import co.com.foodbank.contribution.dto.IContribution;
+import co.com.foodbank.contribution.state.Pending;
 import co.com.foodbank.country.dto.Country;
 import co.com.foodbank.country.dto.CountryDTO;
 import co.com.foodbank.user.dto.BeneficiaryDTO;
@@ -552,15 +557,15 @@ public class UserService {
      * @throws JsonMappingException
      * @throws UserErrorException
      */
-    public IProvider addVaultInProvider(VaultDTO vaultDto, String id)
+    public IProvider addVaultInProvider(VaultDTO vaultDto, String idProvider)
             throws JsonMappingException, JsonProcessingException,
             SDKVaultServiceException, SDKVaultServiceIllegalArgumentException,
             UserErrorException {
 
-        User responseP = this.findById(id);
+        User responseP = this.findById(idProvider);
 
         if (!checkInstansOfProvider(responseP)) {
-            String err = id + MSG_ERROR + MSG_PROVIDER;
+            String err = idProvider + MSG_ERROR + MSG_PROVIDER;
             throw new UserErrorException(err);
         }
 
@@ -609,14 +614,11 @@ public class UserService {
             JsonProcessingException, SDKVaultServiceException,
             SDKVaultServiceIllegalArgumentException {
 
-        String err = _id + MSG_NOT_FOUND + VAULT;
+        String err = error(_id);
 
-        /* UPDATE A VAULT FROM USER */
         IProvider result = findBySucursal(_id);
 
-        IVault vault = result.getSucursal().stream()
-                .filter(d -> d.getId().equals(_id)).findFirst()
-                .orElseThrow(() -> new NotFoundException(err));
+        IVault vault = findVaultInProvider(_id, err, result);
 
         Vault updated = modelMapper.map(vault, Vault.class);
         updated.setAddress(modelMapper.map(dto.getAddress(), Address.class));
@@ -625,6 +627,98 @@ public class UserService {
 
         return providerRepository.save((Provider) result);
 
+    }
+
+
+    private String error(String id) {
+        return id + MSG_NOT_FOUND + VAULT;
+    }
+
+
+    /**
+     * Method to update contribution in provider. Restricted Method Only the API
+     * Rest Vault can update Contribution in User througth operation
+     * http://localhost:8081/vault/add-GeneralContribution/vault-id/
+     * http://localhost:8081/vault/add-DetailContribution/vault-id/
+     * 
+     * @param data
+     * @param idVault
+     * @return {@code IProvider}
+     */
+    public IProvider updateContribution(ContributionData data, String idVault) {
+
+        String err = error(idVault);
+
+        /** CHECK VAULT IN PROVIDER */
+        IProvider resultProvider = findBySucursal(idVault);
+
+        /** FIND VAULT IN USER */
+        IVault resultVault = findVaultInProvider(idVault, err, resultProvider);
+
+        /** SET THE STATE PENDING */
+        Pending pending = new Pending();
+        pending.pending(data);
+
+        /** ADD CONTRIBUTION IN VAULT PROVIDER */
+        resultVault.getContribution()
+                .add(checkTypeOfContribution(data, idVault));
+
+        return providerRepository.save((Provider) resultProvider);
+    }
+
+
+    /**
+     * Method to identify the Contribution type.
+     * 
+     * @param data
+     * @param idVault
+     * @return {@code IContribution}
+     */
+    private IContribution checkTypeOfContribution(ContributionData data,
+            String idVault) {
+
+
+        /** CONVERTO TO ICONTRIBUTION */
+        GeneralContributionData general =
+                modelMapper.map(data, GeneralContributionData.class);
+        general.setId(idVault);
+
+        DetailContributionData detail =
+                modelMapper.map(data, DetailContributionData.class);
+        detail.setId(idVault);
+
+        return validate(general, detail);
+    }
+
+
+
+    /**
+     * Check the type of Contribution.
+     * 
+     * @param general
+     * @param detail
+     * @return {@code IContribution }
+     */
+    private IContribution validate(GeneralContributionData general,
+            DetailContributionData detail) {
+
+        return (Objects.isNull(general.getVolume())) ? detail : general;
+    }
+
+
+    /**
+     * Method to find vault in provider.
+     * 
+     * @param idVault
+     * @param err
+     * @param resultProvider
+     * @return {@code IVault}
+     */
+    private IVault findVaultInProvider(String idVault, String err,
+            IProvider resultProvider) {
+        return resultProvider.getSucursal().stream()
+                .filter(d -> d.getId().equals(idVault)).findFirst()
+                .orElseThrow(() -> new NotFoundException(err));
     }
 
 

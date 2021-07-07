@@ -19,8 +19,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
 
         http.csrf().disable().authorizeRequests().antMatchers("/user")
-                .permitAll().antMatchers("/user/updateVaultInProvider/**")
-                .hasIpAddress("127.0.0.1/24").anyRequest().permitAll();
+                .permitAll()
+                .antMatchers("/user/updateVaultInProvider/**",
+                        "/user/updateContribution/**")
+                .access("hasIpAddress('127.0.0.1/24')").anyRequest()
+                .permitAll();
+
+
+
     }
 
 

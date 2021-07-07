@@ -110,6 +110,13 @@
 			<artifactId>co.foodbank.lib.dto.address</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
+		
+		
+		<dependency>
+			<groupId>co.com.foodbank.contribution</groupId>
+			<artifactId>co.foodbank.lib.state.contribution</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 		<!-- Dependencies for all DTO -->
 
 
