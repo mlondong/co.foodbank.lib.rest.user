@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.webjars.NotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import co.com.foodbank.contribution.dto.ContributionData;
 import co.com.foodbank.user.dto.BeneficiaryDTO;
 import co.com.foodbank.user.dto.ProviderDTO;
 import co.com.foodbank.user.dto.VolunterDTO;
@@ -357,7 +358,8 @@ public class UserRestController {
 
 
     /**
-     * Method to update Vault in a Provider
+     * Method to update Vault in a Provider Restricted Operation, only the API
+     * REST Vault can update Vault in Provider.
      * 
      * @param dto
      * @param id
@@ -369,8 +371,9 @@ public class UserRestController {
      * @throws JsonProcessingException
      * @throws JsonMappingException
      */
-    @Operation(summary = "Update Vault in Provider",
-            description = "Restricted by spring security, only used by specific ips.",
+    @Operation(
+            summary = "Update Vault in Provider, Restricted by spring security, only used by rest vault.",
+            description = "Restricted by spring security, only used by rest vault.",
             tags = {"Provider"})
     @ApiResponses(
             value = {
@@ -423,19 +426,19 @@ public class UserRestController {
                             description = "Invalid input"),
                     @ApiResponse(responseCode = "409",
                             description = "Provider already exists")})
-    @PostMapping(value = "/addVaultInProvider/{id}",
+    @PostMapping(value = "/createVaultInProvider/{id}",
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseBody
     public ResponseEntity<IProvider> addVaultInProvider(
             @RequestBody @Valid VaultDTO vaultDto,
-            @PathVariable("id") @NotBlank @NotNull String id)
+            @PathVariable("id") @NotBlank @NotNull String idProvider)
             throws UserNotFoundException, NotFoundException, UserErrorException,
             JsonMappingException, JsonProcessingException,
             SDKVaultServiceException, SDKVaultServiceIllegalArgumentException {
 
         return ResponseEntity.status(HttpStatus.OK)
-                .body(controller.addVaultInProvider(vaultDto, id));
+                .body(controller.addVaultInProvider(vaultDto, idProvider));
     }
 
 
@@ -534,6 +537,40 @@ public class UserRestController {
                 .body(controller.findById(_id));
     }
 
+
+
+    /*****************************************************************************************/
+    /**
+     * Method to update contribution in provider vault
+     * 
+     * @param data
+     * @param idVault
+     * @return ResponseEntity<IProvider>
+     * @throws UserNotFoundException
+     */
+    @Operation(
+            summary = "Update Contributions in Beneficiary, Restricted by spring security, only used by rest vault. ",
+            description = "Restricted by spring security, only used by rest vault.",
+            tags = {"Beneficiary"})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201",
+                    description = "Beneficiary created",
+                    content = @Content(schema = @Schema(
+                            implementation = Beneficiary.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid input"),
+            @ApiResponse(responseCode = "409",
+                    description = "Beneficiary already exists")})
+    @PutMapping(value = "/updateContribution/{idVault}",
+            consumes = {MediaType.APPLICATION_JSON_VALUE},
+            produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<IProvider> updateContribution(
+            @RequestBody @Valid ContributionData data,
+            @PathVariable("idVault") @NotBlank @NotNull String idVault)
+            throws UserNotFoundException {
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(controller.updateContribution(data, idVault));
+    }
 
 
 }
