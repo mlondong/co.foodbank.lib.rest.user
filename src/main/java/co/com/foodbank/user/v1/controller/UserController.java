@@ -10,7 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.webjars.NotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import co.com.foodbank.contribution.dto.ContributionData;
+import co.com.foodbank.contribution.state.ContributionData;
 import co.com.foodbank.user.dto.BeneficiaryDTO;
 import co.com.foodbank.user.dto.ProviderDTO;
 import co.com.foodbank.user.dto.VolunterDTO;
