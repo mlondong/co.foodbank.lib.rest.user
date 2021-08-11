@@ -3,7 +3,7 @@ package co.com.foodbank.user.v1.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import co.com.foodbank.address.dto.IAddress;
-import co.com.foodbank.user.model.IUser;
+import co.com.foodbank.user.interfaces.IUser;
 
 /**
  * Abstract Class User to mapping an different users in the food bank.
