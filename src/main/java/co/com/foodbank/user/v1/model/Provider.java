@@ -5,7 +5,7 @@ import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import co.com.foodbank.address.dto.IAddress;
-import co.com.foodbank.user.model.IProvider;
+import co.com.foodbank.user.interfaces.IProvider;
 import co.com.foodbank.vault.dto.IVault;
 
 /**

@@ -74,7 +74,7 @@
 			<version>2.4.0</version>
 		</dependency>
 
-	
+
 
 		<!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-security -->
 		<dependency>
@@ -87,6 +87,12 @@
 
 		<!-- Dependencies for all DTO -->
 
+		<dependency>
+			<groupId>co.com.foodbank.contribution</groupId>
+			<artifactId>co.foodbank.lib.dto.contribution</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+
+		</dependency>
 
 		<dependency>
 			<groupId>co.com.foodbank.user</groupId>
@@ -105,8 +111,8 @@
 			<artifactId>co.foodbank.lib.dto.address</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
-		
-		
+
+
 		<dependency>
 			<groupId>co.com.foodbank.contribution</groupId>
 			<artifactId>co.foodbank.lib.state.contribution</artifactId>
