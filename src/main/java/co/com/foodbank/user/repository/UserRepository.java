@@ -23,4 +23,8 @@ public interface UserRepository extends MongoRepository<User, String> {
     User finByDni(Long dni) throws UserNotFoundException;
 
 
+    @Query("{$and: [{'name': ?0}, {'email': ?1}, {'phones': ?2}]}")
+    User findByUser(String name, String email, String phones)
+            throws UserNotFoundException;
+
 }

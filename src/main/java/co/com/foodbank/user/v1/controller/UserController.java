@@ -14,12 +14,15 @@ import co.com.foodbank.contribution.state.ContributionData;
 import co.com.foodbank.user.dto.BeneficiaryDTO;
 import co.com.foodbank.user.dto.ProviderDTO;
 import co.com.foodbank.user.dto.VolunterDTO;
+import co.com.foodbank.user.dto.interfaces.IBeneficiary;
+import co.com.foodbank.user.dto.interfaces.IProvider;
+import co.com.foodbank.user.dto.interfaces.IUser;
+import co.com.foodbank.user.dto.interfaces.IVolunter;
+import co.com.foodbank.user.dto.request.RequestBeneficiaryData;
+import co.com.foodbank.user.dto.request.RequestUserData;
+import co.com.foodbank.user.dto.request.RequestVolunterData;
 import co.com.foodbank.user.exception.UserErrorException;
 import co.com.foodbank.user.exception.UserNotFoundException;
-import co.com.foodbank.user.interfaces.IBeneficiary;
-import co.com.foodbank.user.interfaces.IProvider;
-import co.com.foodbank.user.interfaces.IUser;
-import co.com.foodbank.user.interfaces.IVolunter;
 import co.com.foodbank.user.service.UserService;
 import co.com.foodbank.vault.dto.VaultDTO;
 import co.com.foodbank.vault.sdk.exception.SDKVaultServiceException;
@@ -273,6 +276,41 @@ public class UserController {
             @NotBlank @NotNull String idVault) {
         // TODO Auto-generated method stub
         return service.updateContribution(data, idVault);
+    }
+
+
+    /**
+     * Method to find by User.
+     * 
+     * @param user
+     * @return {@code IUser}
+     */
+    public IUser findByUser(@Valid RequestUserData user)
+            throws UserNotFoundException {
+        return service.findByUser(user);
+    }
+
+
+    /**
+     * Method to find Beneficiary.
+     * 
+     * @param dto
+     * @return {@code IBeneficiary}
+     */
+    public IBeneficiary findBeneficiary(RequestBeneficiaryData data)
+            throws UserNotFoundException {
+        return service.findBeneficiary(data);
+    }
+
+    /**
+     * Method to find Volunter.
+     * 
+     * @param dto
+     * @return {@code IVolunter}
+     */
+    public IVolunter findVolunteer(RequestVolunterData data)
+            throws UserNotFoundException {
+        return service.findVolunteer(data);
     }
 
 
