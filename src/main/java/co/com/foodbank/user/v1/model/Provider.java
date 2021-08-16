@@ -4,9 +4,9 @@ import java.util.Collection;
 import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-import co.com.foodbank.address.dto.IAddress;
-import co.com.foodbank.user.interfaces.IProvider;
-import co.com.foodbank.vault.dto.IVault;
+import co.com.foodbank.address.dto.interfaces.IAddress;
+import co.com.foodbank.user.dto.interfaces.IProvider;
+import co.com.foodbank.vault.dto.interfaces.IVault;
 
 /**
  * @author mauricio.londono@gmail.com co.com.foodbank.user.v1.model 15/05/2021

@@ -3,9 +3,9 @@ package co.com.foodbank.user.v1.model;
 import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-import co.com.foodbank.address.dto.IAddress;
-import co.com.foodbank.user.interfaces.IVolunter;
-import co.com.foodbank.vehicule.dto.IVehicule;
+import co.com.foodbank.address.dto.interfaces.IAddress;
+import co.com.foodbank.user.dto.interfaces.IVolunter;
+import co.com.foodbank.vehicule.dto.interfaces.IVehicule;
 
 
 /**

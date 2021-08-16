@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.webjars.NotFoundException;
@@ -27,12 +28,15 @@ import co.com.foodbank.contribution.state.ContributionData;
 import co.com.foodbank.user.dto.BeneficiaryDTO;
 import co.com.foodbank.user.dto.ProviderDTO;
 import co.com.foodbank.user.dto.VolunterDTO;
+import co.com.foodbank.user.dto.interfaces.IBeneficiary;
+import co.com.foodbank.user.dto.interfaces.IProvider;
+import co.com.foodbank.user.dto.interfaces.IUser;
+import co.com.foodbank.user.dto.interfaces.IVolunter;
+import co.com.foodbank.user.dto.request.RequestBeneficiaryData;
+import co.com.foodbank.user.dto.request.RequestUserData;
+import co.com.foodbank.user.dto.request.RequestVolunterData;
 import co.com.foodbank.user.exception.UserErrorException;
 import co.com.foodbank.user.exception.UserNotFoundException;
-import co.com.foodbank.user.interfaces.IBeneficiary;
-import co.com.foodbank.user.interfaces.IProvider;
-import co.com.foodbank.user.interfaces.IUser;
-import co.com.foodbank.user.interfaces.IVolunter;
 import co.com.foodbank.user.v1.controller.UserController;
 import co.com.foodbank.user.v1.model.Beneficiary;
 import co.com.foodbank.user.v1.model.Provider;
@@ -571,6 +575,100 @@ public class UserRestController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(controller.updateContribution(data, idVault));
     }
+
+
+
+    /*********************************************************************/
+    /**
+     * Method to find users by multiples variables.
+     * 
+     * @param _id
+     * @return {@code ResponseEntity<IUser>}
+     * @throws UserNotFoundException
+     */
+    @Operation(summary = "Find user by multiples variables.")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200",
+                            description = "User found.",
+                            content = {
+                                    @Content(mediaType = "application/json")}),
+                    @ApiResponse(responseCode = "500",
+                            description = "Service not available.",
+                            content = @Content),
+                    @ApiResponse(responseCode = "400",
+                            description = "Bad request.", content = @Content)})
+    @GetMapping(value = "/findByUser/name/{name}/email/{email}/phone/{phone}")
+    public ResponseEntity<IUser> findByUser(
+            @PathVariable("name") @NotNull String name,
+            @PathVariable("email") @NotNull String email,
+            @PathVariable("phone") @NotNull String phone)
+            throws UserNotFoundException {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                controller.findByUser(new RequestUserData(name, email, phone)));
+    }
+
+
+
+    /*********************************************************************/
+    /**
+     * Method to find beneficiary.
+     * 
+     * @param _id
+     * @return {@code ResponseEntity<IUser>}
+     * @throws UserNotFoundException
+     */
+    @Operation(summary = "Find Beneficiary")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200",
+                            description = "Beneficiary found.",
+                            content = {
+                                    @Content(mediaType = "application/json")}),
+                    @ApiResponse(responseCode = "500",
+                            description = "Service not available.",
+                            content = @Content),
+                    @ApiResponse(responseCode = "400",
+                            description = "Bad request.", content = @Content)})
+    @GetMapping(value = "/findBeneficiary")
+    public ResponseEntity<IBeneficiary> findBeneficiary(
+            @RequestParam("id") @NotNull String id,
+            @RequestParam("socialReason") @NotNull String socialReason)
+            throws UserNotFoundException {
+        return ResponseEntity.status(HttpStatus.OK).body(controller
+                .findBeneficiary(new RequestBeneficiaryData(id, socialReason)));
+    }
+
+
+    /*********************************************************************/
+    /**
+     * Method to find Volunteer.
+     * 
+     * @param _id
+     * @return {@code ResponseEntity<IUser>}
+     * @throws UserNotFoundException
+     */
+    @Operation(summary = "Find Volunteer")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200",
+                            description = "Volunteer found.",
+                            content = {
+                                    @Content(mediaType = "application/json")}),
+                    @ApiResponse(responseCode = "500",
+                            description = "Service not available.",
+                            content = @Content),
+                    @ApiResponse(responseCode = "400",
+                            description = "Bad request.", content = @Content)})
+    @GetMapping(value = "/findVolunteer")
+    public ResponseEntity<IVolunter> findVolunteer(
+            @RequestParam("id") @NotNull String id,
+            @RequestParam("dni") @NotNull String dni)
+            throws UserNotFoundException {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                controller.findVolunteer(new RequestVolunterData(id, dni)));
+    }
+
 
 
 }

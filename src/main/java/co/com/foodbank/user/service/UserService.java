@@ -16,9 +16,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import co.com.foodbank.address.dto.Address;
 import co.com.foodbank.address.dto.AddressDTO;
-import co.com.foodbank.contribution.dao.DetailContributionData;
-import co.com.foodbank.contribution.dao.GeneralContributionData;
-import co.com.foodbank.contribution.dto.IContribution;
+import co.com.foodbank.contribution.dto.interfaces.IContribution;
+import co.com.foodbank.contribution.dto.response.DetailContributionData;
+import co.com.foodbank.contribution.dto.response.GeneralContributionData;
 import co.com.foodbank.contribution.state.ContributionData;
 import co.com.foodbank.contribution.state.Pending;
 import co.com.foodbank.country.dto.Country;
@@ -26,22 +26,26 @@ import co.com.foodbank.country.dto.CountryDTO;
 import co.com.foodbank.user.dto.BeneficiaryDTO;
 import co.com.foodbank.user.dto.ProviderDTO;
 import co.com.foodbank.user.dto.VolunterDTO;
+import co.com.foodbank.user.dto.interfaces.IBeneficiary;
+import co.com.foodbank.user.dto.interfaces.IProvider;
+import co.com.foodbank.user.dto.interfaces.IUser;
+import co.com.foodbank.user.dto.interfaces.IVolunter;
+import co.com.foodbank.user.dto.request.RequestBeneficiaryData;
+import co.com.foodbank.user.dto.request.RequestUserData;
+import co.com.foodbank.user.dto.request.RequestVolunterData;
 import co.com.foodbank.user.exception.UserErrorException;
 import co.com.foodbank.user.exception.UserNotFoundException;
-import co.com.foodbank.user.interfaces.IBeneficiary;
-import co.com.foodbank.user.interfaces.IProvider;
-import co.com.foodbank.user.interfaces.IUser;
-import co.com.foodbank.user.interfaces.IVolunter;
 import co.com.foodbank.user.repository.BeneficiaryRepository;
 import co.com.foodbank.user.repository.ProviderRepository;
 import co.com.foodbank.user.repository.UserRepository;
 import co.com.foodbank.user.repository.VolunterRepository;
+import co.com.foodbank.user.util.ParametersUser;
 import co.com.foodbank.user.v1.model.Beneficiary;
 import co.com.foodbank.user.v1.model.Provider;
 import co.com.foodbank.user.v1.model.User;
 import co.com.foodbank.user.v1.model.Volunter;
-import co.com.foodbank.vault.dto.IVault;
 import co.com.foodbank.vault.dto.VaultDTO;
+import co.com.foodbank.vault.dto.interfaces.IVault;
 import co.com.foodbank.vault.sdk.exception.SDKVaultServiceException;
 import co.com.foodbank.vault.sdk.exception.SDKVaultServiceIllegalArgumentException;
 import co.com.foodbank.vault.sdk.model.ResponseVaultData;
@@ -78,18 +82,6 @@ public class UserService {
     @Qualifier("sdkVaultService")
     private SDKVaultService sdkVaultService;
 
-    private static final String MSG_ERROR = "is not a";
-
-    private static final String MSG_BENEFICIARY = " Beneficiary";
-
-    private static final String MSG_VOLUNTER = " Volunter";
-
-    private static final String MSG_PROVIDER = " Provider";
-
-    private static final String MSG_NOT_FOUND = " Not Found";
-
-    private static final String VAULT = " Valut";
-
 
 
     /**
@@ -98,9 +90,11 @@ public class UserService {
      * @return {@code Collection<IUser> }
      */
     public Collection<IUser> findAll() throws UserNotFoundException {
+
         return userRepository.findAll().stream()
                 .map(d -> modelMapper.map(d, IUser.class))
                 .collect(Collectors.toList());
+
     }
 
 
@@ -316,7 +310,6 @@ public class UserService {
         provider = initProvider(providerDto, provider);
         provider.setState(true);
         provider.setSucursal(new ArrayList<IVault>());
-        // provider.setSucursal(createVault(providerDto));
         return provider;
     }
 
@@ -333,32 +326,6 @@ public class UserService {
         return provider;
     }
 
-
-    /**
-     * Method to create Vault in Provider.
-     * 
-     * @param providerDto
-     * @throws JsonMappingException
-     * @throws JsonProcessingException
-     * @throws SDKVaultServiceException
-     * @throws SDKVaultServiceIllegalArgumentException
-     */
-    /*
-     * private Collection<IVault> createVault(ProviderDTO providerDto) throws
-     * JsonMappingException, JsonProcessingException, SDKVaultServiceException,
-     * SDKVaultServiceIllegalArgumentException {
-     * 
-     * Collection<Vault> data = new ArrayList<Vault>();
-     * 
-     * for (VaultDTO d : providerDto.getSucursal()) { ResponseVaultData response
-     * = sdkVaultService.create(d); data.add(modelMapper.map(response,
-     * Vault.class)); }
-     * 
-     * return data.stream().map(d -> modelMapper.map(d, IVault.class))
-     * .collect(Collectors.toList());
-     * 
-     * }
-     */
 
     /****************************************************************************************************************/
 
@@ -410,7 +377,8 @@ public class UserService {
 
         User dataDB = findById(_id);
         if (!checkInstansOfBeneficiary(dataDB)) {
-            String err = _id + MSG_ERROR + MSG_BENEFICIARY;
+            String err = _id + ParametersUser.MSG_ERROR
+                    + ParametersUser.MSG_BENEFICIARY;
             throw new UserErrorException(err);
         }
         return beneficiaryRepository
@@ -466,7 +434,8 @@ public class UserService {
 
         User dataDB = findById(_id);
         if (!checkInstansOfProvider(dataDB)) {
-            String err = _id + MSG_ERROR + MSG_PROVIDER;
+            String err = _id + ParametersUser.MSG_ERROR
+                    + ParametersUser.MSG_PROVIDER;
             throw new UserErrorException(err);
         }
 
@@ -520,7 +489,8 @@ public class UserService {
 
         User dataDB = findById(_id);
         if (!checkInstansOfVolunter(dataDB)) {
-            String err = _id + MSG_ERROR + MSG_VOLUNTER;
+            String err = _id + ParametersUser.MSG_ERROR
+                    + ParametersUser.MSG_VOLUNTER;
             throw new UserErrorException(err);
         }
         return volunterRepository.save(buildVolunter(dto, (Volunter) dataDB));
@@ -565,7 +535,8 @@ public class UserService {
         User responseP = this.findById(idProvider);
 
         if (!checkInstansOfProvider(responseP)) {
-            String err = idProvider + MSG_ERROR + MSG_PROVIDER;
+            String err = idProvider + ParametersUser.MSG_ERROR
+                    + ParametersUser.MSG_PROVIDER;
             throw new UserErrorException(err);
         }
 
@@ -631,7 +602,7 @@ public class UserService {
 
 
     private String error(String id) {
-        return id + MSG_NOT_FOUND + VAULT;
+        return id + ParametersUser.MSG_NOT_FOUND + ParametersUser.VAULT;
     }
 
 
@@ -719,6 +690,61 @@ public class UserService {
         return resultProvider.getSucursal().stream()
                 .filter(d -> d.getId().equals(idVault)).findFirst()
                 .orElseThrow(() -> new NotFoundException(err));
+    }
+
+
+    /**
+     * Method to find by User.
+     * 
+     * @param user
+     * @return {@code IUser}
+     */
+    public IUser findByUser(RequestUserData user) throws UserNotFoundException {
+
+        User result = userRepository.findByUser(user.getName(), user.getEmail(),
+                user.getPhones());
+
+        if (Objects.isNull(result)) {
+            throw new UserNotFoundException(user.toString());
+        }
+        return modelMapper.map(result, IUser.class);
+    }
+
+    /**
+     * Method to find Beneficiary.
+     * 
+     * @param dto
+     * @return {@code IBeneficiary}
+     */
+
+    public IBeneficiary findBeneficiary(RequestBeneficiaryData dto)
+            throws UserNotFoundException {
+
+        Beneficiary result = beneficiaryRepository.findBeneficiary(dto.getId(),
+                dto.getSocialReason());
+
+        if (Objects.isNull(result)) {
+            throw new UserNotFoundException(dto.toString());
+        }
+        return modelMapper.map(result, IBeneficiary.class);
+    }
+
+
+    /**
+     * Method to find Volunteer.
+     * 
+     * @param dto
+     * @return {@code IVolunter}
+     */
+    public IVolunter findVolunteer(RequestVolunterData data) {
+
+        Volunter result = volunterRepository.findVolunteer(data.getId(),
+                Long.valueOf(data.getDni()));
+
+        if (Objects.isNull(result)) {
+            throw new UserNotFoundException(data.toString());
+        }
+        return modelMapper.map(result, IVolunter.class);
     }
 
 
