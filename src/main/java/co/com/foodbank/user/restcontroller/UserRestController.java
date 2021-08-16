@@ -598,11 +598,11 @@ public class UserRestController {
                             content = @Content),
                     @ApiResponse(responseCode = "400",
                             description = "Bad request.", content = @Content)})
-    @GetMapping(value = "/findByUser/name/{name}/email/{email}/phone/{phone}")
+    @GetMapping(value = "/findByUser")
     public ResponseEntity<IUser> findByUser(
-            @PathVariable("name") @NotNull String name,
-            @PathVariable("email") @NotNull String email,
-            @PathVariable("phone") @NotNull String phone)
+            @RequestParam("name") @NotNull String name,
+            @RequestParam("email") @NotNull String email,
+            @RequestParam("phone") @NotNull String phone)
             throws UserNotFoundException {
         return ResponseEntity.status(HttpStatus.OK).body(
                 controller.findByUser(new RequestUserData(name, email, phone)));
