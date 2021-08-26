@@ -90,7 +90,8 @@ public class UserRestController {
                             content = @Content),
                     @ApiResponse(responseCode = "400",
                             description = "Bad request.", content = @Content)})
-    @GetMapping(value = "/findBySucursal/{id-vault}")
+    @GetMapping(value = "/findBySucursal/{id-vault}",
+            produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<IProvider> findBySucursal(
             @PathVariable("id-vault") @NotBlank @NotNull String id)
             throws UserNotFoundException {
@@ -389,12 +390,12 @@ public class UserRestController {
                             description = "Invalid input"),
                     @ApiResponse(responseCode = "409",
                             description = "Provider already exists")})
-    @PutMapping(value = "/updateVaultInProvider/{id}",
+    @PutMapping(value = "/updateVaultInProvider/{id-vault}",
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<IProvider> updateVaultProvider(
             @RequestBody @Valid VaultDTO dto,
-            @PathVariable("id") @NotBlank @NotNull String id)
+            @PathVariable("id-vault") @NotBlank @NotNull String id)
             throws UserNotFoundException, NotFoundException, UserErrorException,
             JsonMappingException, JsonProcessingException,
             SDKVaultServiceException, SDKVaultServiceIllegalArgumentException {
@@ -430,13 +431,13 @@ public class UserRestController {
                             description = "Invalid input"),
                     @ApiResponse(responseCode = "409",
                             description = "Provider already exists")})
-    @PostMapping(value = "/createVaultInProvider/{id}",
+    @PostMapping(value = "/createVaultInProvider/{id-provider}",
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseBody
     public ResponseEntity<IProvider> addVaultInProvider(
             @RequestBody @Valid VaultDTO vaultDto,
-            @PathVariable("id") @NotBlank @NotNull String idProvider)
+            @PathVariable("id-provider") @NotBlank @NotNull String idProvider)
             throws UserNotFoundException, NotFoundException, UserErrorException,
             JsonMappingException, JsonProcessingException,
             SDKVaultServiceException, SDKVaultServiceIllegalArgumentException {
@@ -533,7 +534,9 @@ public class UserRestController {
                             content = @Content),
                     @ApiResponse(responseCode = "400",
                             description = "Bad request.", content = @Content)})
-    @GetMapping(value = "/findById/{id}")
+    @GetMapping(value = "/findById/{id}",
+            produces = {MediaType.APPLICATION_JSON_VALUE})
+    @ResponseBody
     public ResponseEntity<IUser> findById(
             @PathVariable("id") @NotBlank @NotNull String _id)
             throws UserNotFoundException {
@@ -564,16 +567,18 @@ public class UserRestController {
             @ApiResponse(responseCode = "400", description = "Invalid input"),
             @ApiResponse(responseCode = "409",
                     description = "Beneficiary already exists")})
-    @PutMapping(value = "/updateContribution/{idVault}",
+    @PutMapping(
+            value = "/updateContribution/vault/{id-vault}/contribution/{id-contribution}",
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<IProvider> updateContribution(
             @RequestBody @Valid ContributionData data,
-            @PathVariable("idVault") @NotBlank @NotNull String idVault)
+            @PathVariable("id-vault") @NotBlank @NotNull String idVault,
+            @PathVariable("id-contribution") @NotBlank @NotNull String idContribution)
             throws UserNotFoundException {
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(controller.updateContribution(data, idVault));
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                controller.updateContribution(data, idVault, idContribution));
     }
 
 
@@ -598,7 +603,8 @@ public class UserRestController {
                             content = @Content),
                     @ApiResponse(responseCode = "400",
                             description = "Bad request.", content = @Content)})
-    @GetMapping(value = "/findByUser")
+    @GetMapping(value = "/findByUser",
+            produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<IUser> findByUser(
             @RequestParam("name") @NotNull String name,
             @RequestParam("email") @NotNull String email,
@@ -630,7 +636,8 @@ public class UserRestController {
                             content = @Content),
                     @ApiResponse(responseCode = "400",
                             description = "Bad request.", content = @Content)})
-    @GetMapping(value = "/findBeneficiary")
+    @GetMapping(value = "/findBeneficiary",
+            produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<IBeneficiary> findBeneficiary(
             @RequestParam("id") @NotNull String id,
             @RequestParam("socialReason") @NotNull String socialReason)
@@ -660,7 +667,8 @@ public class UserRestController {
                             content = @Content),
                     @ApiResponse(responseCode = "400",
                             description = "Bad request.", content = @Content)})
-    @GetMapping(value = "/findVolunteer")
+    @GetMapping(value = "/findVolunteer",
+            produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<IVolunter> findVolunteer(
             @RequestParam("id") @NotNull String id,
             @RequestParam("dni") @NotNull String dni)
