@@ -191,6 +191,7 @@ public class UserService {
         Volunter volunter = modelMapper.map(dto, Volunter.class);
         volunter.setVehicule(vehicule);
         volunter.setAddress(address);
+        volunter.setState(true);
         return volunter;
     }
 
@@ -356,6 +357,7 @@ public class UserService {
         Beneficiary beneficiary = modelMapper.map(dto, Beneficiary.class);
         Address address = setAddress(dto.getAddress());
         beneficiary.setAddress(address);
+        beneficiary.setState(true);
 
         return beneficiary;
     }
@@ -616,7 +618,8 @@ public class UserService {
      * @param idVault
      * @return {@code IProvider}
      */
-    public IProvider updateContribution(ContributionData data, String idVault) {
+    public IProvider updateContribution(ContributionData data, String idVault,
+            String idContribution) {
 
         String err = error(idVault);
 
@@ -632,7 +635,7 @@ public class UserService {
 
         /** ADD CONTRIBUTION IN VAULT PROVIDER */
         resultVault.getContribution()
-                .add(checkTypeOfContribution(data, idVault));
+                .add(checkTypeOfContribution(data, idVault, idContribution));
 
         return providerRepository.save((Provider) resultProvider);
     }
@@ -646,17 +649,17 @@ public class UserService {
      * @return {@code IContribution}
      */
     private IContribution checkTypeOfContribution(ContributionData data,
-            String idVault) {
+            String idVault, String idContribution) {
 
 
         /** CONVERTO TO ICONTRIBUTION */
         GeneralContributionData general =
                 modelMapper.map(data, GeneralContributionData.class);
-        general.setId(idVault);
+        general.setId(idContribution);
 
         DetailContributionData detail =
                 modelMapper.map(data, DetailContributionData.class);
-        detail.setId(idVault);
+        detail.setId(idContribution);
 
         return validate(general, detail);
     }

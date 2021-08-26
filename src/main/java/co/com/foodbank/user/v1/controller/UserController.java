@@ -273,9 +273,10 @@ public class UserController {
      * @return {@code IProvider}
      */
     public IProvider updateContribution(@Valid ContributionData data,
-            @NotBlank @NotNull String idVault) {
+            @NotBlank @NotNull String idVault,
+            @NotBlank @NotNull String idContribution) {
         // TODO Auto-generated method stub
-        return service.updateContribution(data, idVault);
+        return service.updateContribution(data, idVault, idContribution);
     }
 
 
