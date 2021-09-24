@@ -3,6 +3,7 @@ package co.com.foodbank.user.service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.validation.Valid;
@@ -46,6 +47,7 @@ import co.com.foodbank.user.v1.model.User;
 import co.com.foodbank.user.v1.model.Volunter;
 import co.com.foodbank.vault.dto.VaultDTO;
 import co.com.foodbank.vault.dto.interfaces.IVault;
+import co.com.foodbank.vault.exception.VaultNotFoundException;
 import co.com.foodbank.vault.sdk.exception.SDKVaultServiceException;
 import co.com.foodbank.vault.sdk.exception.SDKVaultServiceIllegalArgumentException;
 import co.com.foodbank.vault.sdk.model.ResponseVaultData;
@@ -82,6 +84,7 @@ public class UserService {
     @Qualifier("sdkVaultService")
     private SDKVaultService sdkVaultService;
 
+    private static final String MESSAGE_ERR = " id Contribution not found.";
 
 
     /**
@@ -204,6 +207,7 @@ public class UserService {
      */
     private Volunter buildVolunter(VolunterDTO dto, Volunter query) {
         Address address = setAddress(dto.getAddress());
+        Vehicule vehicule = setVehicule(dto);
 
         Volunter volunter = query;
         volunter.setAddress(address);
@@ -212,6 +216,8 @@ public class UserService {
         volunter.setPassword(dto.getPassword());
         volunter.setPhones(dto.getPhones());
         volunter.setDni(Long.valueOf(dto.getDni()));
+        volunter.setVehicule(vehicule);
+
         return volunter;
     }
 
@@ -621,6 +627,7 @@ public class UserService {
     public IProvider updateContribution(ContributionData data, String idVault,
             String idContribution) {
 
+
         String err = error(idVault);
 
         /** CHECK VAULT IN PROVIDER */
@@ -629,16 +636,69 @@ public class UserService {
         /** FIND VAULT IN USER */
         IVault resultVault = findVaultInProvider(idVault, err, resultProvider);
 
+
+        /** CHECK IF CONTRIBUTION EXIST **/
+        if (checkContributionInVault(resultVault, idContribution)) {
+            IContribution found =
+                    getContributionInVault(resultVault, idContribution);
+            resultVault.getContribution().remove(found);
+        }
+
+
         /** SET THE STATE PENDING */
         Pending pending = new Pending();
         pending.pending(data);
 
+
         /** ADD CONTRIBUTION IN VAULT PROVIDER */
-        resultVault.getContribution()
-                .add(checkTypeOfContribution(data, idVault, idContribution));
+        IContribution newContrib =
+                checkTypeOfContribution(data, idContribution);
+        resultVault.getContribution().add(newContrib);
+
 
         return providerRepository.save((Provider) resultProvider);
     }
+
+
+    /**
+     * Method to check if exist an contribution in Vault.
+     * 
+     * @param vault
+     * @param idContribution
+     * @return {@code boolean}
+     */
+    private boolean checkContributionInVault(IVault vault,
+            String idContribution) {
+
+        Optional<IContribution> found = vault.getContribution().stream()
+                .filter(d -> d.getId().equals(idContribution)).findFirst();
+        if (found.isEmpty()) {
+            return false;
+        }
+        return true;
+    }
+
+
+    /**
+     * Method to find a Contribution in vaut User.
+     * 
+     * @param vault
+     * @param idContribution
+     * @return {@code IContribution}
+     */
+    private IContribution getContributionInVault(IVault vault,
+            String idContribution) {
+
+        Optional<IContribution> found = vault.getContribution().stream()
+                .filter(d -> d.getId().equals(idContribution)).findFirst();
+
+        if (found.isEmpty()) {
+            new VaultNotFoundException(idContribution + MESSAGE_ERR);
+        }
+
+        return found.get();
+    }
+
 
 
     /**
@@ -649,13 +709,15 @@ public class UserService {
      * @return {@code IContribution}
      */
     private IContribution checkTypeOfContribution(ContributionData data,
-            String idVault, String idContribution) {
+            String idContribution) {
+
 
 
         /** CONVERTO TO ICONTRIBUTION */
         GeneralContributionData general =
                 modelMapper.map(data, GeneralContributionData.class);
         general.setId(idContribution);
+
 
         DetailContributionData detail =
                 modelMapper.map(data, DetailContributionData.class);
