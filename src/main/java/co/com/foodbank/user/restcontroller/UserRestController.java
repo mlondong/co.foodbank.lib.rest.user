@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -61,6 +62,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  */
 
 @RestController
+@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping(value = "/user")
 @Tag(name = "User", description = "the User API")
 @Validated
@@ -558,27 +560,31 @@ public class UserRestController {
     @Operation(
             summary = "Update Contributions in Beneficiary, Restricted by spring security, only used by rest vault. ",
             description = "Restricted by spring security, only used by rest vault.",
-            tags = {"Beneficiary"})
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201",
-                    description = "Beneficiary created",
-                    content = @Content(schema = @Schema(
-                            implementation = Beneficiary.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid input"),
-            @ApiResponse(responseCode = "409",
-                    description = "Beneficiary already exists")})
+            tags = {"Contribution"})
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "201",
+                            description = "Contribution updated",
+                            content = @Content(schema = @Schema(
+                                    implementation = Provider.class))),
+                    @ApiResponse(responseCode = "400",
+                            description = "Invalid input"),
+                    @ApiResponse(responseCode = "409",
+                            description = "Contribution already exists")})
     @PutMapping(
-            value = "/updateContribution/vault/{id-vault}/contribution/{id-contribution}",
+            value = "/updateContribution/vault/{idVault}/contribution/{idContribution}",
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<IProvider> updateContribution(
-            @RequestBody @Valid ContributionData data,
-            @PathVariable("id-vault") @NotBlank @NotNull String idVault,
-            @PathVariable("id-contribution") @NotBlank @NotNull String idContribution)
+            @PathVariable("idVault") @NotBlank @NotNull String idVault,
+            @PathVariable("idContribution") @NotBlank @NotNull String idContribution,
+            @RequestBody @Valid ContributionData data)
             throws UserNotFoundException {
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(
+
+        return ResponseEntity.status(HttpStatus.OK).body(
                 controller.updateContribution(data, idVault, idContribution));
+
     }
 
 
